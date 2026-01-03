@@ -220,7 +220,7 @@
             64: { n: "Wei Chi", t: "Antes de la Consumación", d: "Si el pequeño zorro, al casi completar el cruce, se moja la cola, nada es propicio.", i: "El fuego está sobre el agua: la imagen del estado antes de la consumación." }
         };
 
-        // --- MOTOR DE ANÁLISIS ESTRUCTURAL ---
+        // --- MOTOR DE ANÁLISIS ESTRUCTURAL PROFUNDO ---
         const generateDeepAnalysis = (upperBin, lowerBin, hexName) => {
             const upper = TRIGRAMS[upperBin];
             const lower = TRIGRAMS[lowerBin];
@@ -234,55 +234,32 @@
             const nuclearTitle = ORACLE_DB[nuclearId]?.t || "Desconocido";
 
             return `
-ANÁLISIS ESTRUCTURAL:
-Hexagrama Compuesto: ${upper.element} (Arriba/Fuera) sobre ${lower.element} (Abajo/Dentro).
+ANÁLISIS DE LA ARQUITECTURA DEL TIEMPO (${hexName.toUpperCase()})
 
-DINÁMICA:
-Tu mundo interior (${lower.name} - ${lower.quality}) se encuentra con la realidad externa (${upper.name} - ${upper.quality}).
-${upperBin === lowerBin ? "Al ser el mismo elemento duplicado, la fuerza se intensifica." : `La interacción es entre ${lower.quality} y ${upper.quality}.`}
+1. LA DINÁMICA DE LOS ELEMENTOS (ENOS LONG)
+Este hexagrama se construye sobre la tensión o armonía entre el Mundo Interno (Trigrama Inferior: ${lower.element}) y el Mundo Externo (Trigrama Superior: ${upper.element}).
 
-HEXAGRAMA NUCLEAR (La Semilla):
-En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle}.
+TU POSICIÓN SUBJETIVA (${lower.name} - ${lower.meaning}):
+${lower.subjective}
+Representa tu base psicológica actual: la raíz desde donde actúas.
+
+LA REALIDAD OBJETIVA (${upper.name} - ${upper.meaning}):
+${upper.objective}
+Representa las circunstancias que te rodean o lo que viene hacia ti desde afuera.
+
+LA INTERACCIÓN:
+La imagen es "${upper.element} sobre ${lower.element}". 
+${upperBin === lowerBin 
+? `Al duplicarse el elemento ${upper.element}, la energía no encuentra oposición, sino resonancia. Es un tiempo de intensificación pura de la cualidad "${upper.quality}". La lección es la consistencia.` 
+: `¿Cómo interactúan? ${lower.element} (adentro) trata de moverse hacia ${upper.element} (afuera). Es el diálogo entre ${lower.quality} y ${upper.quality}.`}
+
+2. EL HEXAGRAMA NUCLEAR (LA SEMILLA OCULTA)
+Dentro de este signo, escondido en su estructura (líneas 2 a 5), yace el Hexagrama Nuclear: ${nuclearId} - ${nuclearTitle}.
+Este signo representa la tendencia latente, el potencial oculto o el miedo subyacente que motiva la situación actual. La energía de "${TRIGRAMS[nLowerBin].element}" y "${TRIGRAMS[nUpperBin].element}" está gestándose en lo profundo.
+
+3. LA PERSPECTIVA TEMPORAL (OSVALDO LOISI)
+Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo delimita un "coto cerrado" de experiencia humana. Estás transitando la estación de "${hexName}". La clave para salir de este tiempo o aprovecharlo no es luchar contra él, sino alinearte con su "Impronta". Si el tiempo es de ${upper.quality}, actuar con impaciencia solo generará desorden. Si el tiempo es de ${lower.quality}, la pasividad será un error.
             `;
-        };
-
-        // --- GENERADOR DE TINTA PROCEDURAL (SVG) ---
-        // Genera un paisaje abstracto único cada vez basado en los trigramas
-        const generateProceduralInk = (upperBin, lowerBin) => {
-            // Colores tinta
-            const colors = ['#111', '#222', '#333'];
-            const opacity = [0.1, 0.2, 0.3];
-            
-            // Elementos basados en trigramas
-            let svgContent = "";
-            
-            // Cielo/Aire (Círculos, arcos suaves)
-            if (upperBin === '111' || upperBin === '110') {
-                svgContent += `<circle cx='${200 + Math.random()*400}' cy='${50 + Math.random()*50}' r='${40 + Math.random()*40}' fill='${colors[0]}' opacity='0.05' />`;
-            }
-            // Montaña (Triángulos picos)
-            if (upperBin === '001' || lowerBin === '001') {
-                svgContent += `<path d='M${100+Math.random()*100} 200 L${300+Math.random()*100} 50 L${500+Math.random()*100} 200 Z' fill='${colors[1]}' opacity='0.15' />`;
-            }
-            // Agua/Lago (Curvas fluidas abajo)
-            if (lowerBin === '010' || lowerBin === '011') {
-                svgContent += `<path d='M0 160 Q 400 ${120 + Math.random()*40} 800 160 V 200 H 0 Z' fill='${colors[2]}' opacity='0.1' />`;
-            }
-            // Fuego/Trueno (Trazos angulares o energéticos)
-            if (upperBin === '101' || upperBin === '100') {
-                 svgContent += `<path d='M${300+Math.random()*200} 100 L${350+Math.random()*20} 20 L${400+Math.random()*20} 100 Z' fill='${colors[0]}' opacity='0.2' />`;
-            }
-            // Tierra (Base sólida)
-            if (lowerBin === '000') {
-                svgContent += `<rect x='0' y='180' width='800' height='20' fill='${colors[1]}' opacity='0.2' />`;
-            }
-
-            // Si está vacío (casos raros), poner algo genérico
-            if (svgContent === "") {
-                 svgContent += `<circle cx='400' cy='100' r='80' fill='${colors[0]}' opacity='0.05' />`;
-            }
-
-            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E${svgContent}%3E%3C/svg%3E`;
         };
 
         // --- CITAS MUTANTES ---
@@ -293,7 +270,7 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
             { t: "Somos nuestra memoria, somos ese quimérico museo de formas inconstantes.", a: "Jorge Luis Borges", s: "Elogio de la Sombra" }
         ];
 
-        // --- BASE DE DATOS MAESTRA (Fusión) ---
+        // --- BASE DE DATOS MAESTRA ---
         const getHexInfo = (linesInput) => {
             const bin = linesInput.map(l => (l===7||l===9)?'1':'0').join('');
             const id = KING_WEN_MAP[bin];
@@ -303,9 +280,9 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
             const lowerBin = bin.substring(0,3);
             const upperBin = bin.substring(3,6);
             const analysis = generateDeepAnalysis(upperBin, lowerBin, dbEntry.t);
-            const inkImage = generateProceduralInk(upperBin, lowerBin);
+            const inkImage = generateProceduralInk(upperBin, lowerBin); // SVG por defecto
 
-            // Jodorowsky generico por ahora (requeriría base de datos masiva aparte)
+            // Jodorowsky generico por ahora
             const jodorowsky = {
                 p: "Tu intuición completará el sentido.",
                 a: "Medita en silencio sobre el nombre de este hexagrama y realiza un acto simbólico de cambio."
@@ -322,7 +299,7 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
             const [quote, setQuote] = useState(INTRO_QUOTES[0]);
             const [readings, setReadings] = useState([]);
             const [showBitacora, setShowBitacora] = useState(false);
-            const [genImage, setGenImage] = useState(null); 
+            const [genImage, setGenImage] = useState(INK_LANDSCAPES[0]); 
             const [isGenerating, setIsGenerating] = useState(false);
             const scrollRef = useRef(null);
 
@@ -330,12 +307,34 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
                 const stored = localStorage.getItem('iching_master_log');
                 if(stored) setReadings(JSON.parse(stored));
                 setQuote(INTRO_QUOTES[Math.floor(Math.random() * INTRO_QUOTES.length)]);
+                setGenImage(INK_LANDSCAPES[Math.floor(Math.random() * INK_LANDSCAPES.length)]); 
             }, []);
 
             // --- GENERAR IMAGEN PROCEDURAL (REEMPLAZA A LA API DE GOOGLE PARA ESTABILIDAD) ---
-            const generateHexagramVisual = (info) => {
+            const generateHexagramVisual = async (info) => {
                 setIsGenerating(true);
-                // Simulamos un pequeño tiempo de "pincelado" para el efecto ritual
+                
+                // Intento de generación con Nano Banana si la clave está presente
+                if (apiKey) {
+                    const prompt = `Ancient Chinese ink wash painting style, minimalist line drawing. Abstract representation of I Ching Hexagram "${info.t}". Concept: ${info.i}. Deep meaning: ${info.analysis.substring(0, 100)}... Black ink on old paper texture, mystical, serene, traditional art.`;
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
+                        });
+                        const result = await response.json();
+                        if (result.predictions?.[0]?.bytesBase64Encoded) {
+                            setGenImage(`data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`);
+                            setIsGenerating(false);
+                            return; // Éxito, salimos
+                        }
+                    } catch (e) {
+                        console.error("Error API Imagen:", e);
+                    }
+                }
+
+                // Fallback a SVG si no hay API o falla
                 setTimeout(() => {
                     setGenImage(info.inkImage);
                     setIsGenerating(false);
@@ -374,7 +373,8 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
                 if(phase === 'REVELATION' && lines.length === 6) {
                     const info = getHexInfo(lines);
                     saveReading(lines);
-                    generateHexagramVisual(info); // Generar arte automáticamente
+                    // Generar visual al revelar
+                    // generateHexagramVisual(info); 
                 }
             }, [phase]);
 
@@ -382,7 +382,7 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
                 setLines([]);
                 setPhase('INTRO');
                 setMethod(null);
-                setGenImage(null);
+                setGenImage(INK_LANDSCAPES[Math.floor(Math.random() * INK_LANDSCAPES.length)]);
                 setQuote(INTRO_QUOTES[Math.floor(Math.random() * INTRO_QUOTES.length)]);
             };
 
@@ -391,7 +391,8 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
                 setPhase('REVELATION');
                 setShowBitacora(false);
                 const info = getHexInfo(r.lines);
-                generateHexagramVisual(info);
+                // Al revisar, volvemos a un SVG por defecto para dar la opción de "regenerar"
+                setGenImage(info.inkImage); 
             };
 
             const clearLog = () => {
@@ -405,19 +406,78 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
             const movingLines = lines.map((v, i) => (v===6||v===9) ? {line: i+1, val: v} : null).filter(Boolean);
 
             const downloadPDF = () => {
+                if (!currentData) return;
                 const doc = new jsPDF();
-                doc.setFillColor(242, 232, 213); doc.rect(0,0,210,297,'F');
-                doc.setTextColor(154, 27, 27); doc.setFontSize(22); doc.setFont("times", "bold");
-                doc.text(currentData.t.toUpperCase(), 105, 30, {align:'center'});
                 
-                doc.setTextColor(0); doc.setFontSize(12); doc.setFont("times", "normal");
+                // Fondo Crema
+                doc.setFillColor(242, 232, 213); 
+                doc.rect(0,0,210,297,'F');
+                
+                // Marco Rojo
+                doc.setDrawColor(154, 27, 27); // Cinnabar
+                doc.setLineWidth(1.5);
+                doc.rect(10, 10, 190, 277);
+                doc.setLineWidth(0.5);
+                doc.rect(12, 12, 186, 273);
+
+                // Título
+                doc.setTextColor(154, 27, 27); 
+                doc.setFontSize(26); 
+                doc.setFont("times", "bold");
+                doc.text(currentData.t.toUpperCase(), 105, 35, {align:'center'});
+                
+                // Subtítulo
+                doc.setTextColor(20, 20, 20); // Ink
+                doc.setFontSize(16); 
+                doc.setFont("times", "italic");
+                doc.text(`Hexagrama ${currentData.id}: ${currentData.n}`, 105, 45, {align:'center'});
+
+                // Línea divisoria decorativa
+                doc.setDrawColor(154, 27, 27);
+                doc.line(70, 50, 140, 50);
+
+                // Dictamen
+                doc.setFontSize(14);
+                doc.setFont("times", "bold");
+                doc.setTextColor(154, 27, 27);
+                doc.text("DICTAMEN", 20, 65);
+                
+                doc.setFontSize(12);
+                doc.setFont("times", "normal");
+                doc.setTextColor(0);
                 const splitD = doc.splitTextToSize(currentData.d, 170);
-                doc.text(splitD, 20, 50);
+                doc.text(splitD, 20, 72);
+                let y = 72 + (splitD.length * 6) + 10;
+
+                // Imagen
+                doc.setFontSize(14);
+                doc.setFont("times", "bold");
+                doc.setTextColor(154, 27, 27);
+                doc.text("LA IMAGEN", 20, y);
+                y += 7;
                 
-                doc.setFontSize(10);
+                doc.setFontSize(12);
+                doc.setFont("times", "italic");
+                doc.setTextColor(0);
+                const splitI = doc.splitTextToSize(currentData.i, 170);
+                doc.text(splitI, 20, y);
+                y += (splitI.length * 6) + 15;
+
+                // Análisis Estructural
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, y, 190, y);
+                y += 10;
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
                 const splitA = doc.splitTextToSize(currentData.analysis, 170);
-                let y = 50 + (splitD.length * 5) + 20; 
                 doc.text(splitA, 20, y);
+
+                // Pie de página
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                doc.text("Consultado en el Espejo de las Mutaciones", 105, 280, {align:'center'});
+
                 doc.save(`iching_${currentData.id}.pdf`);
             };
 
@@ -519,7 +579,7 @@ En el corazón de esta situación yace el Hexagrama ${nuclearId}: ${nuclearTitle
                                         <img src={genImage || INK_LANDSCAPES[0]} alt="Paisaje" className="w-full h-full object-cover opacity-80" style={{filter: 'sepia(30%) contrast(110%)'}} />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#F2E8D5] to-transparent pointer-events-none"></div>
                                         <button onClick={() => generateHexagramVisual(currentData)} className="absolute bottom-4 right-4 bg-ink/80 hover:bg-cinnabar text-paper px-4 py-2 rounded-sm font-cinzel text-xs uppercase tracking-widest shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 border border-paper/20 z-10">
-                                            <span>👁️</span> Regenerar Visión
+                                            <span>👁️</span> Invocar Visión del Oráculo
                                         </button>
                                     </>
                                 )}
