@@ -80,16 +80,28 @@
         const { useState, useEffect, useRef } = React;
         const { jsPDF } = window.jspdf;
 
+        // --- CLAVE API ---
+        const apiKey = "AIzaSyBRwAd5v0Pgbh6QjWBLAuCy28Z8BG0Fwig"; 
+
+        // --- PAISAJES SVG INCORPORADOS (Nunca fallan) ---
+        // Definidos ANTES de que cualquier componente los intente usar
+        const INK_LANDSCAPES = [
+            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 200L200 100C250 80 300 150 400 50C500 -50 600 150 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M100 200L300 50C350 30 400 120 500 80C600 40 700 180 800 150V200H100Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
+            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 150C200 180 300 100 500 120C700 140 750 80 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M0 180C250 200 400 120 600 150C750 180 780 140 800 160V200H0Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
+            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Ccircle cx='100' cy='50' r='80' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='250' cy='80' r='100' fill='%23111' opacity='0.08'/%3E%3Ccircle cx='500' cy='40' r='120' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='700' cy='90' r='90' fill='%23111' opacity='0.08'/%3E%3C/svg%3E`,
+            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Crect x='50' y='0' width='10' height='200' fill='%23111' opacity='0.1'/%3E%3Crect x='150' y='20' width='8' height='180' fill='%23111' opacity='0.15'/%3E%3Crect x='700' y='50' width='12' height='150' fill='%23111' opacity='0.1'/%3E%3C/svg%3E`
+        ];
+
         // --- SISTEMA DE TRIGRAMAS ---
         const TRIGRAMS = {
-            '111': { name: "Ch'ien", element: "Cielo", meaning: "Lo Creativo", quality: "Fuerza, Persistencia", subjective: "Tu voluntad es firme.", objective: "El entorno es dinámico." },
-            '000': { name: "K'un", element: "Tierra", meaning: "Lo Receptivo", quality: "Entrega, Nutrición", subjective: "Tu actitud es de soporte.", objective: "La situación requiere docilidad." },
-            '100': { name: "Chen", element: "Trueno", meaning: "Lo Suscitativo", quality: "Movimiento, Iniciativa", subjective: "Impulso de actuar.", objective: "Entorno agitado, sorpresas." },
-            '010': { name: "K'an", element: "Agua", meaning: "Lo Abismal", quality: "Peligro, Profundidad", subjective: "Miedo o intuición.", objective: "Situación incierta o riesgosa." },
-            '001': { name: "Ken", element: "Montaña", meaning: "El Aquietamiento", quality: "Quietud, Límite", subjective: "Buscas detenerte.", objective: "Obstáculos sólidos, pausa." },
-            '110': { name: "Sun", element: "Viento/Madera", meaning: "Lo Suave", quality: "Penetración, Crecimiento", subjective: "Indecisión o suavidad.", objective: "Influencia sutil." },
-            '101': { name: "Li", element: "Fuego", meaning: "Lo Adherente", quality: "Claridad, Visión", subjective: "Buscas claridad.", objective: "Todo está expuesto a la luz." },
-            '011': { name: "Tui", element: "Lago", meaning: "Lo Sereno", quality: "Alegría, Apertura", subjective: "Deseo de comunicar.", objective: "Ambiente de intercambio." }
+            '111': { name: "Ch'ien", element: "Cielo", meaning: "Lo Creativo", quality: "Fuerza, Persistencia, Autoridad Paterna", subjective: "Tu voluntad es firme e incansable.", objective: "El entorno es dinámico, exigente y potente." },
+            '000': { name: "K'un", element: "Tierra", meaning: "Lo Receptivo", quality: "Entrega, Nutrición, Espacio Materno", subjective: "Tu actitud es de aceptación y soporte.", objective: "La situación requiere que te dejes guiar y sirvas de base." },
+            '100': { name: "Chen", element: "Trueno", meaning: "Lo Suscitativo", quality: "Movimiento, Iniciativa, Conmoción", subjective: "Sientes un impulso de actuar o cambiar.", objective: "El entorno está agitado, hay sorpresas o nuevos comienzos." },
+            '010': { name: "K'an", element: "Agua", meaning: "Lo Abismal", quality: "Peligro, Profundidad, Emoción", subjective: "Hay miedo o una profunda intuición emocional.", objective: "La situación es incierta, riesgosa o requiere adaptación." },
+            '001': { name: "Ken", element: "Montaña", meaning: "El Aquietamiento", quality: "Quietud, Límite, Detención", subjective: "Buscas detenerte o meditar.", objective: "Hay obstáculos sólidos o un momento de pausa obligada." },
+            '110': { name: "Sun", element: "Viento/Madera", meaning: "Lo Suave", quality: "Penetración, Crecimiento Orgánico", subjective: "Te mueves con indecisión o suave persistencia.", objective: "Las cosas influyen sutilmente, como el viento o las raíces." },
+            '101': { name: "Li", element: "Fuego", meaning: "Lo Adherente", quality: "Claridad, Visión, Dependencia", subjective: "Buscas claridad o ser reconocido.", objective: "Todo está expuesto a la luz; relaciones de dependencia mutua." },
+            '011': { name: "Tui", element: "Lago", meaning: "Lo Sereno", quality: "Alegría, Apertura, Comunicación", subjective: "Deseas comunicar o disfrutar.", objective: "El ambiente es propicio para el intercambio y el placer." }
         };
 
         // --- MAPA BINARIO (REY WEN) ---
@@ -102,6 +114,42 @@
             '110001': 41, '100011': 42, '111110': 43, '011111': 44, '000110': 45, '011000': 46, '010110': 47, '011010': 48,
             '101110': 49, '011101': 50, '100100': 51, '001001': 52, '001011': 53, '110100': 54, '101100': 55, '001101': 56,
             '011011': 57, '110110': 58, '010011': 59, '110010': 60, '110011': 61, '001100': 62, '101010': 63, '010101': 64
+        };
+
+        // --- CATALOGO COMPLETO DE NOMBRES ---
+        const HEX_META = {
+            1: {n: "Ch'ien", t: "Lo Creativo"}, 2: {n: "K'un", t: "Lo Receptivo"},
+            3: {n: "Chun", t: "La Dificultad Inicial"}, 4: {n: "Meng", t: "La Necedad Juvenil"},
+            5: {n: "Hsü", t: "La Espera"}, 6: {n: "Sung", t: "El Conflicto"},
+            7: {n: "Shih", t: "El Ejército"}, 8: {n: "Pi", t: "La Solidaridad"},
+            9: {n: "Hsiao Ch'u", t: "La Fuerza Domesticadora de lo Pequeño"}, 10: {n: "Lü", t: "El Porte"},
+            11: {n: "T'ai", t: "La Paz"}, 12: {n: "P'i", t: "El Estancamiento"},
+            13: {n: "T'ung Jen", t: "La Comunidad con los Hombres"}, 14: {n: "Ta Yu", t: "La Gran Posesión"},
+            15: {n: "Ch'ien", t: "La Modestia"}, 16: {n: "Yü", t: "El Entusiasmo"},
+            17: {n: "Sui", t: "El Seguimiento"}, 18: {n: "Ku", t: "El Trabajo en lo Echado a Perder"},
+            19: {n: "Lin", t: "El Acercamiento"}, 20: {n: "Kuan", t: "La Contemplación"},
+            21: {n: "Shih Ho", t: "La Mordedura Tajante"}, 22: {n: "Pi", t: "La Gracia"},
+            23: {n: "Po", t: "La Desintegración"}, 24: {n: "Fu", t: "El Retorno"},
+            25: {n: "Wu Wang", t: "La Inocencia"}, 26: {n: "Ta Ch'u", t: "La Fuerza Domesticadora de lo Grande"},
+            27: {n: "I", t: "La Nutrición"}, 28: {n: "Ta Kuo", t: "La Preponderancia de lo Grande"},
+            29: {n: "K'an", t: "Lo Abismal"}, 30: {n: "Li", t: "Lo Adherente"},
+            31: {n: "Hsien", t: "El Influjo"}, 32: {n: "Heng", t: "La Duración"},
+            33: {n: "Tun", t: "La Retirada"}, 34: {n: "Ta Chuang", t: "El Poder de lo Grande"},
+            35: {n: "Chin", t: "El Progreso"}, 36: {n: "Ming I", t: "El Oscurecimiento de la Luz"},
+            37: {n: "Chia Jen", t: "La Familia"}, 38: {n: "K'uei", t: "El Antagonismo"},
+            39: {n: "Chien", t: "El Impedimento"}, 40: {n: "Hsieh", t: "La Liberación"},
+            41: {n: "Sun", t: "La Merma"}, 42: {n: "I", t: "El Aumento"},
+            43: {n: "Kuai", t: "La Resolución"}, 44: {n: "Kou", t: "El Acoplamiento"},
+            45: {n: "Ts'ui", t: "La Reunión"}, 46: {n: "Sheng", t: "El Ascenso"},
+            47: {n: "K'un", t: "La Desazón"}, 48: {n: "Ching", t: "El Pozo"},
+            49: {n: "Ko", t: "La Revolución"}, 50: {n: "Ting", t: "El Caldero"},
+            51: {n: "Chen", t: "Lo Suscitativo"}, 52: {n: "Ken", t: "El Aquietamiento"},
+            53: {n: "Chien", t: "La Evolución"}, 54: {n: "Kuei Mei", t: "La Muchacha que se Casa"},
+            55: {n: "Feng", t: "La Plenitud"}, 56: {n: "Lü", t: "El Andariego"},
+            57: {n: "Sun", t: "Lo Suave"}, 58: {n: "Tui", t: "Lo Sereno"},
+            59: {n: "Huan", t: "La Disolución"}, 60: {n: "Chieh", t: "La Restricción"},
+            61: {n: "Chung Fu", t: "La Verdad Interior"}, 62: {n: "Hsiao Kuo", t: "La Pequeña Preponderancia"},
+            63: {n: "Chi Chi", t: "Después de la Consumación"}, 64: {n: "Wei Chi", t: "Antes de la Consumación"}
         };
 
         // --- BASE DE DATOS CANÓNICA (1-64) ---
