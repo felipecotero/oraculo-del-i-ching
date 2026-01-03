@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I Ching: El Espejo de las Mutaciones (Versión Maestra)</title>
+    <title>I Ching: El Espejo de las Mutaciones</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -26,11 +26,7 @@
                         cinzel: ['Cinzel', 'serif'],
                     },
                     colors: {
-                        ink: '#111111',      // Negro Tinta
-                        paper: '#F2E8D5',    // Papel Arroz
-                        cinnabar: '#9A1B1B', // Rojo Sangre
-                        jade: '#3A5F4C',     // Jade Profundo
-                        gold: '#C5A059',     // Oro Viejo
+                        ink: '#111111', paper: '#F2E8D5', cinnabar: '#9A1B1B', jade: '#3A5F4C', gold: '#C5A059',
                     },
                     animation: {
                         'fadeIn': 'fadeIn 1.2s ease-out forwards',
@@ -45,28 +41,13 @@
     </script>
     <style>
         body { 
-            background-color: #F2E8D5;
-            color: #111111;
-            /* Textura de papel */
+            background-color: #F2E8D5; color: #111111;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
             overflow-x: hidden;
         }
-        .vignette {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            box-shadow: inset 0 0 200px rgba(40, 30, 15, 0.5);
-            pointer-events: none; z-index: 0;
-        }
-        /* Estilo para simular tinta china */
-        .ink-brush {
-            background-color: #111;
-            mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='rough'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23rough)'/%3E%3C/svg%3E");
-            opacity: 0.9;
-        }
-        .hex-sticky {
-            position: sticky;
-            top: 2rem;
-            align-self: start;
-        }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 200px rgba(40, 30, 15, 0.5); pointer-events: none; z-index: 0; }
+        .ink-brush { background-color: #111; mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='rough'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23rough)'/%3E%3C/svg%3E"); opacity: 0.9; }
+        .hex-sticky { position: sticky; top: 2rem; align-self: start; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #9A1B1B; border-radius: 4px; }
@@ -80,30 +61,27 @@
         const { useState, useEffect, useRef } = React;
         const { jsPDF } = window.jspdf;
 
-        // --- CLAVE API ---
         const apiKey = "AIzaSyBRwAd5v0Pgbh6QjWBLAuCy28Z8BG0Fwig"; 
 
-        // --- PAISAJES SVG INCORPORADOS ---
+        // --- ARTE SVG (RESPALDO INMEDIATO) ---
         const INK_LANDSCAPES = [
             `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 200L200 100C250 80 300 150 400 50C500 -50 600 150 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M100 200L300 50C350 30 400 120 500 80C600 40 700 180 800 150V200H100Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
             `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 150C200 180 300 100 500 120C700 140 750 80 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M0 180C250 200 400 120 600 150C750 180 780 140 800 160V200H0Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
-            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Ccircle cx='100' cy='50' r='80' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='250' cy='80' r='100' fill='%23111' opacity='0.08'/%3E%3Ccircle cx='500' cy='40' r='120' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='700' cy='90' r='90' fill='%23111' opacity='0.08'/%3E%3C/svg%3E`,
-            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Crect x='50' y='0' width='10' height='200' fill='%23111' opacity='0.1'/%3E%3Crect x='150' y='20' width='8' height='180' fill='%23111' opacity='0.15'/%3E%3Crect x='700' y='50' width='12' height='150' fill='%23111' opacity='0.1'/%3E%3C/svg%3E`
+            `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Ccircle cx='100' cy='50' r='80' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='250' cy='80' r='100' fill='%23111' opacity='0.08'/%3E%3Ccircle cx='500' cy='40' r='120' fill='%23111' opacity='0.05'/%3E%3Ccircle cx='700' cy='90' r='90' fill='%23111' opacity='0.08'/%3E%3C/svg%3E`
         ];
 
-        // --- SISTEMA DE TRIGRAMAS ---
+        // --- DATOS Y LÓGICA ---
         const TRIGRAMS = {
-            '111': { name: "Ch'ien", element: "Cielo", meaning: "Lo Creativo", quality: "Fuerza, Persistencia, Autoridad Paterna", subjective: "Tu voluntad es firme e incansable.", objective: "El entorno es dinámico, exigente y potente." },
-            '000': { name: "K'un", element: "Tierra", meaning: "Lo Receptivo", quality: "Entrega, Nutrición, Espacio Materno", subjective: "Tu actitud es de aceptación y soporte.", objective: "La situación requiere que te dejes guiar y sirvas de base." },
-            '100': { name: "Chen", element: "Trueno", meaning: "Lo Suscitativo", quality: "Movimiento, Iniciativa, Conmoción", subjective: "Sientes un impulso de actuar o cambiar.", objective: "El entorno está agitado, hay sorpresas o nuevos comienzos." },
-            '010': { name: "K'an", element: "Agua", meaning: "Lo Abismal", quality: "Peligro, Profundidad, Emoción", subjective: "Hay miedo o una profunda intuición emocional.", objective: "La situación es incierta, riesgosa o requiere adaptación." },
-            '001': { name: "Ken", element: "Montaña", meaning: "El Aquietamiento", quality: "Quietud, Límite, Detención", subjective: "Buscas detenerte o meditar.", objective: "Hay obstáculos sólidos o un momento de pausa obligada." },
-            '110': { name: "Sun", element: "Viento/Madera", meaning: "Lo Suave", quality: "Penetración, Crecimiento Orgánico", subjective: "Te mueves con indecisión o suave persistencia.", objective: "Las cosas influyen sutilmente, como el viento o las raíces." },
-            '101': { name: "Li", element: "Fuego", meaning: "Lo Adherente", quality: "Claridad, Visión, Dependencia", subjective: "Buscas claridad o ser reconocido.", objective: "Todo está expuesto a la luz; relaciones de dependencia mutua." },
-            '011': { name: "Tui", element: "Lago", meaning: "Lo Sereno", quality: "Alegría, Apertura, Comunicación", subjective: "Deseas comunicar o disfrutar.", objective: "El ambiente es propicio para el intercambio y el placer." }
+            '111': { name: "Ch'ien", element: "Cielo", meaning: "Lo Creativo", quality: "Fuerza" },
+            '000': { name: "K'un", element: "Tierra", meaning: "Lo Receptivo", quality: "Entrega" },
+            '100': { name: "Chen", element: "Trueno", meaning: "Lo Suscitativo", quality: "Movimiento" },
+            '010': { name: "K'an", element: "Agua", meaning: "Lo Abismal", quality: "Peligro" },
+            '001': { name: "Ken", element: "Montaña", meaning: "El Aquietamiento", quality: "Quietud" },
+            '110': { name: "Sun", element: "Viento", meaning: "Lo Suave", quality: "Penetración" },
+            '101': { name: "Li", element: "Fuego", meaning: "Lo Adherente", quality: "Claridad" },
+            '011': { name: "Tui", element: "Lago", meaning: "Lo Sereno", quality: "Alegría" }
         };
 
-        // --- MAPA BINARIO (REY WEN) ---
         const KING_WEN_MAP = {
             '111111': 1, '000000': 2, '100010': 3, '010001': 4, '111010': 5, '010111': 6, '010000': 7, '000010': 8,
             '111011': 9, '110111': 10, '111000': 11, '000111': 12, '101111': 13, '111101': 14, '001000': 15, '000100': 16,
@@ -115,228 +93,127 @@
             '011011': 57, '110110': 58, '010011': 59, '110010': 60, '110011': 61, '001100': 62, '101010': 63, '010101': 64
         };
 
-        // --- CATALOGO COMPLETO DE NOMBRES ---
-        const HEX_META = {
-            1: {n: "Ch'ien", t: "Lo Creativo"}, 2: {n: "K'un", t: "Lo Receptivo"},
-            3: {n: "Chun", t: "La Dificultad Inicial"}, 4: {n: "Meng", t: "La Necedad Juvenil"},
-            5: {n: "Hsü", t: "La Espera"}, 6: {n: "Sung", t: "El Conflicto"},
-            7: {n: "Shih", t: "El Ejército"}, 8: {n: "Pi", t: "La Solidaridad"},
-            9: {n: "Hsiao Ch'u", t: "La Fuerza Domesticadora de lo Pequeño"}, 10: {n: "Lü", t: "El Porte"},
-            11: {n: "T'ai", t: "La Paz"}, 12: {n: "P'i", t: "El Estancamiento"},
-            13: {n: "T'ung Jen", t: "La Comunidad con los Hombres"}, 14: {n: "Ta Yu", t: "La Gran Posesión"},
-            15: {n: "Ch'ien", t: "La Modestia"}, 16: {n: "Yü", t: "El Entusiasmo"},
-            17: {n: "Sui", t: "El Seguimiento"}, 18: {n: "Ku", t: "El Trabajo en lo Echado a Perder"},
-            19: {n: "Lin", t: "El Acercamiento"}, 20: {n: "Kuan", t: "La Contemplación"},
-            21: {n: "Shih Ho", t: "La Mordedura Tajante"}, 22: {n: "Pi", t: "La Gracia"},
-            23: {n: "Po", t: "La Desintegración"}, 24: {n: "Fu", t: "El Retorno"},
-            25: {n: "Wu Wang", t: "La Inocencia"}, 26: {n: "Ta Ch'u", t: "La Fuerza Domesticadora de lo Grande"},
-            27: {n: "I", t: "La Nutrición"}, 28: {n: "Ta Kuo", t: "La Preponderancia de lo Grande"},
-            29: {n: "K'an", t: "Lo Abismal"}, 30: {n: "Li", t: "Lo Adherente"},
-            31: {n: "Hsien", t: "El Influjo"}, 32: {n: "Heng", t: "La Duración"},
-            33: {n: "Tun", t: "La Retirada"}, 34: {n: "Ta Chuang", t: "El Poder de lo Grande"},
-            35: {n: "Chin", t: "El Progreso"}, 36: {n: "Ming I", t: "El Oscurecimiento de la Luz"},
-            37: {n: "Chia Jen", t: "La Familia"}, 38: {n: "K'uei", t: "El Antagonismo"},
-            39: {n: "Chien", t: "El Impedimento"}, 40: {n: "Hsieh", t: "La Liberación"},
-            41: {n: "Sun", t: "La Merma"}, 42: {n: "I", t: "El Aumento"},
-            43: {n: "Kuai", t: "La Resolución"}, 44: {n: "Kou", t: "El Acoplamiento"},
-            45: {n: "Ts'ui", t: "La Reunión"}, 46: {n: "Sheng", t: "El Ascenso"},
-            47: {n: "K'un", t: "La Desazón"}, 48: {n: "Ching", t: "El Pozo"},
-            49: {n: "Ko", t: "La Revolución"}, 50: {n: "Ting", t: "El Caldero"},
-            51: {n: "Chen", t: "Lo Suscitativo"}, 52: {n: "Ken", t: "El Aquietamiento"},
-            53: {n: "Chien", t: "La Evolución"}, 54: {n: "Kuei Mei", t: "La Muchacha que se Casa"},
-            55: {n: "Feng", t: "La Plenitud"}, 56: {n: "Lü", t: "El Andariego"},
-            57: {n: "Sun", t: "Lo Suave"}, 58: {n: "Tui", t: "Lo Sereno"},
-            59: {n: "Huan", t: "La Disolución"}, 60: {n: "Chieh", t: "La Restricción"},
-            61: {n: "Chung Fu", t: "La Verdad Interior"}, 62: {n: "Hsiao Kuo", t: "La Pequeña Preponderancia"},
-            63: {n: "Chi Chi", t: "Después de la Consumación"}, 64: {n: "Wei Chi", t: "Antes de la Consumación"}
-        };
-
-        // --- BASE DE DATOS CANÓNICA (1-64) ---
+        // --- BASE DE DATOS CURADA 1-64 ---
         const ORACLE_DB = {
-            1: { n: "Ch'ien", t: "Lo Creativo", d: "El Creativo obra elevado logro. Propicio es perseverar.", i: "El movimiento del cielo es vigoroso. Así el hombre noble se hace fuerte e incansable." },
-            2: { n: "K'un", t: "Lo Receptivo", d: "Lo Receptivo obra elevado éxito. Propicia es la perseverancia de una yegua.", i: "La condición de la tierra es la entrega receptiva. Así el noble sostiene el mundo exterior." },
-            3: { n: "Chun", t: "La Dificultad Inicial", d: "La Dificultad Inicial obra elevado éxito. Propicio es perseverar. No se debe emprender nada.", i: "Nubes y Trueno: la imagen de la Dificultad Inicial." },
-            4: { n: "Meng", t: "La Necedad Juvenil", d: "La Necedad Juvenil tiene éxito. No soy yo quien busca al joven necio, él me busca a mí.", i: "En el pie de la montaña surge un manantial: la imagen de la Juventud." },
-            5: { n: "Hsü", t: "La Espera", d: "La Espera. Si eres veraz, tendrás luz y éxito. La perseverancia trae ventura.", i: "Nubes suben al cielo: la imagen de la Espera." },
-            6: { n: "Sung", t: "El Conflicto", d: "El Conflicto. Eres veraz y te frenan. Detenerse con cautela a mitad de camino trae ventura.", i: "El cielo y el agua se mueven en direcciones opuestas." },
-            7: { n: "Shih", t: "El Ejército", d: "El Ejército. El ejército necesita perseverancia y un hombre fuerte. Ventura sin tacha.", i: "En el centro de la tierra hay agua: la imagen del Ejército." },
-            8: { n: "Pi", t: "La Solidaridad", d: "La Solidaridad trae ventura. Indaga el oráculo una vez más.", i: "Sobre la tierra hay agua: la imagen de la Solidaridad." },
-            9: { n: "Hsiao Ch'u", t: "La Fuerza Domesticadora de lo Pequeño", d: "Éxito. Densas nubes, ninguna lluvia de nuestra región del oeste.", i: "El viento sopla a través del cielo." },
-            10: { n: "Lü", t: "El Porte", d: "Pisar la cola del tigre. Éste no muerde al hombre. Éxito.", i: "Arriba el cielo, abajo el lago: la imagen del Porte." },
-            11: { n: "T'ai", t: "La Paz", d: "La Paz. Lo pequeño se va, llega lo grande. Ventura. Éxito.", i: "El cielo y la tierra se unen: la imagen de la Paz." },
-            12: { n: "P'i", t: "El Estancamiento", d: "El Estancamiento. Los malvados no favorecen la perseverancia del noble.", i: "Cielo y tierra no se unen: la imagen del Estancamiento." },
-            13: { n: "T'ung Jen", t: "La Comunidad con los Hombres", d: "La Comunidad con los Hombres en lo libre. Éxito. Es propicio atravesar las grandes aguas.", i: "Cielo junto con fuego: la imagen de la Comunidad." },
-            14: { n: "Ta Yu", t: "La Gran Posesión", d: "La Gran Posesión. Éxito en medida suprema.", i: "El fuego en lo alto del cielo: la imagen de la Gran Posesión." },
-            15: { n: "Ch'ien", t: "La Modestia", d: "La Modestia crea éxito. El noble lleva a buen término.", i: "En medio de la tierra hay una montaña: la imagen de la Modestia." },
-            16: { n: "Yü", t: "El Entusiasmo", d: "El Entusiasmo. Es propicio designar ayudantes y hacer marchar ejércitos.", i: "El trueno surge estruendoso de la tierra: la imagen del Entusiasmo." },
-            17: { n: "Sui", t: "El Seguimiento", d: "El Seguimiento tiene elevado éxito. Propicia es la perseverancia. Sin tacha.", i: "En el centro del lago está el trueno: la imagen del Seguimiento." },
-            18: { n: "Ku", t: "El Trabajo en lo Echado a Perder", d: "Tiene elevado éxito. Es propicio atravesar las grandes aguas.", i: "El viento sopla bajo la montaña: la imagen de la Deterioración." },
-            19: { n: "Lin", t: "El Acercamiento", d: "Tiene elevado éxito. Propicia es la perseverancia. Al llegar el octavo mes habrá desventura.", i: "La tierra encima del lago: la imagen del Acercamiento." },
-            20: { n: "Kuan", t: "La Contemplación", d: "Se ha cumplido la ablución, pero aún no la ofrenda.", i: "El viento sopla sobre la tierra: la imagen de la Contemplación." },
-            21: { n: "Shih Ho", t: "La Mordedura Tajante", d: "Tiene éxito. Es propicio dejar que se ejerza la justicia.", i: "Trueno y relámpago: la imagen de la Mordedura Tajante." },
-            22: { n: "Pi", t: "La Gracia", d: "Éxito. En lo pequeño es propicio emprender algo.", i: "Fuego al pie de la montaña: la imagen de la Gracia." },
-            23: { n: "Po", t: "La Desintegración", d: "No es propicio ir a parte alguna.", i: "La montaña descansa sobre la tierra: la imagen de la Desintegración." },
-            24: { n: "Fu", t: "El Retorno", d: "Éxito. Salidas y entradas sin falla. Al séptimo día viene el retorno.", i: "El trueno dentro de la tierra: la imagen del Retorno." },
-            25: { n: "Wu Wang", t: "La Inocencia", d: "Elevado éxito. La perseverancia es propicia. Si uno no es recto, tendrá desventura.", i: "Bajo el cielo marcha el trueno: la imagen de la Inocencia." },
-            26: { n: "Ta Ch'u", t: "La Fuerza Domesticadora de lo Grande", d: "Propicia es la perseverancia. No comer en casa trae ventura.", i: "El cielo dentro de la montaña: la imagen de la Fuerza Domesticadora." },
-            27: { n: "I", t: "La Nutrición", d: "La perseverancia trae ventura. Presta atención a la nutrición.", i: "Al pie de la montaña está el trueno: la imagen de la Nutrición." },
-            28: { n: "Ta Kuo", t: "La Preponderancia de lo Grande", d: "La viga maestra se dobla hacia abajo. Es propicio tener a donde ir.", i: "El lago inunda por encima de los árboles." },
-            29: { n: "K'an", t: "Lo Abismal", d: "Si eres veraz, tendrás éxito en tu corazón.", i: "El agua fluye ininterrumpidamente y llega a la meta." },
-            30: { n: "Li", t: "Lo Adherente", d: "Es propicia la perseverancia. Trae éxito. Cuidar de la vaca trae ventura.", i: "La claridad se eleva dos veces: la imagen del Fuego." },
-            31: { n: "Hsien", t: "El Influjo", d: "Éxito. Es propicia la perseverancia. Tomar una muchacha trae ventura.", i: "Sobre la montaña hay un lago: la imagen del Influjo." },
-            32: { n: "Heng", t: "La Duración", d: "Éxito. No hay tacha. Es propicio tener a donde ir.", i: "Trueno y viento: la imagen de la Duración." },
-            33: { n: "Tun", t: "La Retirada", d: "Éxito. En lo pequeño es propicia la perseverancia.", i: "Bajo el cielo está la montaña: la imagen de la Retirada." },
-            34: { n: "Ta Chuang", t: "El Poder de lo Grande", d: "Es propicia la perseverancia.", i: "El trueno está en lo alto del cielo: la imagen del Gran Poder." },
-            35: { n: "Chin", t: "El Progreso", d: "El fuerte príncipe es honrado con caballos en gran número.", i: "El sol se eleva sobre la tierra: la imagen del Progreso." },
-            36: { n: "Ming I", t: "El Oscurecimiento de la Luz", d: "Es propicio ser perseverante en la emergencia.", i: "La luz se ha sumergido en la tierra: la imagen del Oscurecimiento." },
-            37: { n: "Chia Jen", t: "La Familia", d: "Es propicia la perseverancia de la mujer.", i: "El viento surge del fuego: la imagen de la Familia." },
-            38: { n: "K'uei", t: "El Antagonismo", d: "En cosas pequeñas, ventura.", i: "Arriba el fuego, abajo el lago: la imagen del Antagonismo." },
-            39: { n: "Chien", t: "El Impedimento", d: "Es propicio el oeste y el sur. No es propicio el este y el norte.", i: "Sobre la montaña hay agua: la imagen del Impedimento." },
-            40: { n: "Hsieh", t: "La Liberación", d: "Es propicio el oeste y el sur. Si no hay más nada a donde uno debiera ir, es venturoso el regreso.", i: "El trueno y la lluvia surgen: la imagen de la Liberación." },
-            41: { n: "Sun", t: "La Merma", d: "Si hay veracidad, se logra elevado éxito. No hay tacha.", i: "Al pie de la montaña está el lago: la imagen de la Merma." },
-            42: { n: "I", t: "El Aumento", d: "Es propicio emprender algo. Es propicio atravesar las grandes aguas.", i: "Viento y trueno: la imagen del Aumento." },
-            43: { n: "Kuai", t: "La Resolución", d: "Uno debe dar a conocer el asunto en la corte del rey. Despachar una ciudad.", i: "El lago ha subido al cielo: la imagen de la Irrupción." },
-            44: { n: "Kou", t: "El Acoplamiento", d: "La muchacha es poderosa. No se debe tomar a esta muchacha.", i: "Bajo el cielo está el viento: la imagen del Acoplamiento." },
-            45: { n: "Ts'ui", t: "La Reunión", d: "Éxito. El rey se acerca a su templo. Propicio es ver al gran hombre.", i: "El lago sobre la tierra: la imagen de la Reunión." },
-            46: { n: "Sheng", t: "El Ascenso", d: "Elevado éxito. Hay que ver al gran hombre.", i: "En el centro de la tierra crece madera: la imagen del Ascenso." },
-            47: { n: "K'un", t: "La Desazón", d: "Éxito. Perseverancia. El gran hombre opera ventura. Ninguna tacha.", i: "El lago no tiene agua: la imagen del Agotamiento." },
-            48: { n: "Ching", t: "El Pozo", d: "Uno cambia de ciudad, pero no cambia de pozo.", i: "Sobre la madera hay agua: la imagen del Pozo." },
-            49: { n: "Ko", t: "La Revolución", d: "En tu propio día encontrarás fe. Elevado éxito.", i: "Fuego en el lago: la imagen de la Revolución." },
-            50: { n: "Ting", t: "El Caldero", d: "Elevada ventura. Éxito.", i: "Por encima de la madera hay fuego: la imagen del Caldero." },
-            51: { n: "Chen", t: "Lo Suscitativo", d: "Llega la conmoción. ¡Ju, ju! Palabras rientes, ¡ja, ja!", i: "El trueno repetido: la imagen de la Conmoción." },
-            52: { n: "Ken", t: "El Aquietamiento", d: "Aquietar su espalda, de modo que él no sienta más su cuerpo.", i: "Montañas estribadas: la imagen del Aquietamiento." },
-            53: { n: "Chien", t: "La Evolución", d: "La muchacha se casa. Ventura. Es propicia la perseverancia.", i: "Sobre la montaña hay un árbol: la imagen de la Evolución." },
-            54: { n: "Kuei Mei", t: "La Muchacha que se Casa", d: "Las empresas traen desventura. Nada que fuese propicio.", i: "Sobre el lago hay un trueno: la imagen de la Muchacha que se Casa." },
-            55: { n: "Feng", t: "La Plenitud", d: "El rey la alcanza. No estés triste. Hay que ser como el sol al mediodía.", i: "Trueno y rayos llegan a la vez: la imagen de la Plenitud." },
-            56: { n: "Lü", t: "El Andariego", d: "Éxito en lo pequeño. Al andariego la perseverancia le trae ventura.", i: "Fuego sobre la montaña: la imagen del Andariego." },
-            57: { n: "Sun", t: "Lo Suave", d: "Éxito en lo pequeño. Es propicio tener a donde ir.", i: "Vientos seguidos: la imagen de lo Suave." },
-            58: { n: "Tui", t: "Lo Sereno", d: "Éxito. Es propicia la perseverancia.", i: "Lagos que reposan uno sobre otro: la imagen de lo Sereno." },
-            59: { n: "Huan", t: "La Disolución", d: "Éxito. El rey se acerca a su templo.", i: "El viento roza por encima el agua: la imagen de la Disolución." },
-            60: { n: "Chieh", t: "La Restricción", d: "Éxito. Una restricción amarga no se debe perseverar.", i: "Agua sobre el lago: la imagen de la Restricción." },
-            61: { n: "Chung Fu", t: "La Verdad Interior", d: "Cerdos y peces. ¡Ventura! Es propicio cruzar las grandes aguas.", i: "Viento sobre el lago: la imagen de la Verdad Interior." },
-            62: { n: "Hsiao Kuo", t: "La Preponderancia de lo Pequeño", d: "Es propicia la perseverancia. Pequeñas cosas pueden hacerse.", i: "Trueno sobre la montaña: la imagen de la Preponderancia de lo Pequeño." },
-            63: { n: "Chi Chi", t: "Después de la Consumación", d: "Éxito en lo pequeño. Al principio ventura, al final desorden.", i: "El agua está sobre el fuego: la imagen del estado después de la consumación." },
-            64: { n: "Wei Chi", t: "Antes de la Consumación", d: "Si el pequeño zorro, al casi completar el cruce, se moja la cola, nada es propicio.", i: "El fuego está sobre el agua: la imagen del estado antes de la consumación." }
+            1: { t: "Lo Creativo", d: "El Creativo obra elevado logro. Propicio es perseverar.", i: "El cielo se mueve con poder." },
+            2: { t: "Lo Receptivo", d: "Lo Receptivo obra elevado éxito. Propicia es la perseverancia de una yegua.", i: "La condición de la tierra es la entrega receptiva." },
+            3: { t: "La Dificultad Inicial", d: "Obra elevado éxito. Propicio es perseverar. No se debe emprender nada.", i: "Nubes y Trueno tejen la red de la dificultad." },
+            4: { t: "La Necedad Juvenil", d: "Tiene éxito. No soy yo quien busca al joven necio, él me busca a mí.", i: "Un manantial al pie de la montaña." },
+            5: { t: "La Espera", d: "Si eres veraz, tendrás luz y éxito. Perseverancia trae ventura.", i: "Nubes suben al cielo: tiempo de comer y beber." },
+            6: { t: "El Conflicto", d: "Eres veraz y te frenan. Detenerse con cautela a mitad de camino trae ventura.", i: "Cielo y Agua se mueven en direcciones opuestas." },
+            7: { t: "El Ejército", d: "El ejército necesita perseverancia y un hombre fuerte.", i: "En el centro de la tierra hay agua." },
+            8: { t: "La Solidaridad", d: "Trae ventura. Indaga el oráculo una vez más.", i: "Sobre la tierra hay agua: unión natural." },
+            9: { t: "La Fuerza Domesticadora de lo Pequeño", d: "Éxito. Densas nubes, ninguna lluvia del oeste.", i: "El viento sopla a través del cielo." },
+            10: { t: "El Porte", d: "Pisar la cola del tigre. Éste no muerde. Éxito.", i: "Cielo arriba, lago abajo." },
+            11: { t: "La Paz", d: "Lo pequeño se va, llega lo grande. Ventura.", i: "Cielo y tierra se unen." },
+            12: { t: "El Estancamiento", d: "Los malvados no favorecen la perseverancia del noble.", i: "Cielo y tierra no se unen." },
+            13: { t: "La Comunidad con los Hombres", d: "Éxito. Es propicio atravesar las grandes aguas.", i: "Cielo junto con fuego." },
+            14: { t: "La Gran Posesión", d: "Éxito en medida suprema.", i: "El fuego en lo alto del cielo." },
+            15: { t: "La Modestia", d: "Crea éxito. El noble lleva a buen término.", i: "En medio de la tierra hay una montaña." },
+            16: { t: "El Entusiasmo", d: "Es propicio designar ayudantes y hacer marchar ejércitos.", i: "El trueno surge estruendoso de la tierra." },
+            17: { t: "El Seguimiento", d: "Elevado éxito. Propicia es la perseverancia.", i: "En el centro del lago está el trueno." },
+            18: { t: "El Trabajo en lo Echado a Perder", d: "Elevado éxito. Es propicio atravesar las grandes aguas.", i: "Viento sopla bajo la montaña." },
+            19: { t: "El Acercamiento", d: "Elevado éxito. Propicia es la perseverancia.", i: "La tierra encima del lago." },
+            20: { t: "La Contemplación", d: "Se ha cumplido la ablución, pero aún no la ofrenda.", i: "El viento sopla sobre la tierra." },
+            21: { t: "La Mordedura Tajante", d: "Tiene éxito. Es propicio dejar que se ejerza la justicia.", i: "Trueno y relámpago." },
+            22: { t: "La Gracia", d: "Éxito en lo pequeño.", i: "Fuego al pie de la montaña." },
+            23: { t: "La Desintegración", d: "No es propicio ir a parte alguna.", i: "La montaña descansa sobre la tierra." },
+            24: { t: "El Retorno", d: "Salidas y entradas sin falla. Al séptimo día viene el retorno.", i: "El trueno dentro de la tierra." },
+            25: { t: "La Inocencia", d: "Elevado éxito. Si uno no es recto, tendrá desventura.", i: "Bajo el cielo marcha el trueno." },
+            26: { t: "La Fuerza Domesticadora de lo Grande", d: "Propicia es la perseverancia. No comer en casa trae ventura.", i: "Cielo dentro de la montaña." },
+            27: { t: "La Nutrición", d: "Perseverancia trae ventura. Presta atención a la boca.", i: "Al pie de la montaña está el trueno." },
+            28: { t: "La Preponderancia de lo Grande", d: "La viga maestra se dobla. Es propicio tener a donde ir.", i: "El lago inunda sobre los árboles." },
+            29: { t: "Lo Abismal", d: "Si eres veraz, tendrás éxito en tu corazón.", i: "El agua fluye ininterrumpidamente." },
+            30: { t: "Lo Adherente", d: "Perseverancia. Cuidar de la vaca trae ventura.", i: "La claridad se eleva dos veces." },
+            31: { t: "La Influencia", d: "Éxito. Tomar una muchacha trae ventura.", i: "Sobre la montaña hay un lago." },
+            32: { t: "La Duración", d: "Éxito. No hay tacha.", i: "Trueno y viento." },
+            33: { t: "La Retirada", d: "Éxito. En lo pequeño es propicia la perseverancia.", i: "Bajo el cielo está la montaña." },
+            34: { t: "El Gran Poder", d: "Es propicia la perseverancia.", i: "El trueno en lo alto del cielo." },
+            35: { t: "El Progreso", d: "El fuerte príncipe es honrado con caballos.", i: "El sol se eleva sobre la tierra." },
+            36: { t: "El Oscurecimiento de la Luz", d: "Es propicio ser perseverante en la emergencia.", i: "La luz se ha sumergido en la tierra." },
+            37: { t: "La Familia", d: "Es propicia la perseverancia de la mujer.", i: "El viento surge del fuego." },
+            38: { t: "El Antagonismo", d: "En cosas pequeñas, ventura.", i: "Arriba el fuego, abajo el lago." },
+            39: { t: "El Impedimento", d: "Es propicio el oeste y el sur.", i: "Sobre la montaña hay agua." },
+            40: { t: "La Liberación", d: "Es propicio el oeste y el sur.", i: "El trueno y la lluvia surgen." },
+            41: { t: "La Merma", d: "Si hay veracidad, se logra elevado éxito.", i: "Al pie de la montaña está el lago." },
+            42: { t: "El Aumento", d: "Es propicio emprender algo.", i: "Viento y trueno." },
+            43: { t: "La Resolución", d: "Uno debe dar a conocer el asunto en la corte.", i: "El lago ha subido al cielo." },
+            44: { t: "El Acoplamiento", d: "La muchacha es poderosa. No tomarla.", i: "Bajo el cielo está el viento." },
+            45: { t: "La Reunión", d: "Éxito. El rey se acerca a su templo.", i: "El lago sobre la tierra." },
+            46: { t: "El Ascenso", d: "Elevado éxito. Hay que ver al gran hombre.", i: "En el centro de la tierra crece madera." },
+            47: { t: "La Desazón", d: "Éxito. Perseverancia. El gran hombre opera ventura.", i: "El lago no tiene agua." },
+            48: { t: "El Pozo", d: "Uno cambia de ciudad, pero no de pozo.", i: "Sobre la madera hay agua." },
+            49: { t: "La Revolución", d: "En tu propio día encontrarás fe.", i: "Fuego en el lago." },
+            50: { t: "El Caldero", d: "Elevada ventura. Éxito.", i: "Por encima de la madera hay fuego." },
+            51: { t: "Lo Suscitativo", d: "Llega la conmoción.", i: "El trueno repetido." },
+            52: { t: "El Aquietamiento", d: "Aquietar su espalda.", i: "Montañas estribadas." },
+            53: { t: "La Evolución", d: "La muchacha se casa. Ventura.", i: "Sobre la montaña hay un árbol." },
+            54: { t: "La Muchacha que se Casa", d: "Las empresas traen desventura.", i: "Sobre el lago hay un trueno." },
+            55: { t: "La Plenitud", d: "El rey la alcanza. No estés triste.", i: "Trueno y rayos llegan a la vez." },
+            56: { t: "El Andariego", d: "Éxito en lo pequeño.", i: "Fuego sobre la montaña." },
+            57: { t: "Lo Suave", d: "Éxito en lo pequeño.", i: "Vientos seguidos." },
+            58: { t: "Lo Sereno", d: "Éxito. Es propicia la perseverancia.", i: "Lagos que reposan uno sobre otro." },
+            59: { t: "La Disolución", d: "Éxito. El rey se acerca a su templo.", i: "El viento roza por encima el agua." },
+            60: { t: "La Restricción", d: "Éxito. Una restricción amarga no se debe perseverar.", i: "Agua sobre el lago." },
+            61: { t: "La Verdad Interior", d: "Cerdos y peces. ¡Ventura!", i: "Viento sobre el lago." },
+            62: { t: "La Preponderancia de lo Pequeño", d: "Pequeñas cosas pueden hacerse.", i: "Trueno sobre la montaña." },
+            63: { t: "Después de la Consumación", d: "Éxito en lo pequeño.", i: "El agua está sobre el fuego." },
+            64: { t: "Antes de la Consumación", d: "Si el zorro se moja la cola, nada es propicio.", i: "El fuego está sobre el agua." }
         };
 
-        // --- MOTOR DE ANÁLISIS ESTRUCTURAL PROFUNDO Y PROCEDURAL INK ---
+        // --- FUNCIONES LÓGICAS ---
         const generateDeepAnalysis = (upperBin, lowerBin, hexName) => {
             const upper = TRIGRAMS[upperBin];
             const lower = TRIGRAMS[lowerBin];
-            const fullBin = lowerBin + upperBin;
-            const nLowerBin = fullBin[1] + fullBin[2] + fullBin[3];
-            const nUpperBin = fullBin[2] + fullBin[3] + fullBin[4];
-            const nFullBin = nLowerBin + nUpperBin;
-            const nuclearId = KING_WEN_MAP[nFullBin];
-            const nuclearTitle = ORACLE_DB[nuclearId]?.t || "Desconocido";
-
-            return `
-ANÁLISIS DE LA ARQUITECTURA DEL TIEMPO (${hexName.toUpperCase()})
-
-1. LA DINÁMICA DE LOS ELEMENTOS (ENOS LONG)
-Este hexagrama se construye sobre la tensión o armonía entre el Mundo Interno (Trigrama Inferior: ${lower.element}) y el Mundo Externo (Trigrama Superior: ${upper.element}).
-
-TU POSICIÓN SUBJETIVA (${lower.name} - ${lower.meaning}):
-${lower.subjective}
-Representa tu base psicológica actual: la raíz desde donde actúas.
-
-LA REALIDAD OBJETIVA (${upper.name} - ${upper.meaning}):
-${upper.objective}
-Representa las circunstancias que te rodean o lo que viene hacia ti desde afuera.
-
-LA INTERACCIÓN:
-La imagen es "${upper.element} sobre ${lower.element}". 
-${upperBin === lowerBin 
-? `Al duplicarse el elemento ${upper.element}, la energía no encuentra oposición, sino resonancia. Es un tiempo de intensificación pura de la cualidad "${upper.quality}". La lección es la consistencia.` 
-: `¿Cómo interactúan? ${lower.element} (adentro) trata de moverse hacia ${upper.element} (afuera). Es el diálogo entre ${lower.quality} y ${upper.quality}.`}
-
-2. EL HEXAGRAMA NUCLEAR (LA SEMILLA OCULTA)
-Dentro de este signo, escondido en su estructura (líneas 2 a 5), yace el Hexagrama Nuclear: ${nuclearId} - ${nuclearTitle}.
-Este signo representa la tendencia latente, el potencial oculto o el miedo subyacente que motiva la situación actual. La energía de "${TRIGRAMS[nLowerBin].element}" y "${TRIGRAMS[nUpperBin].element}" está gestándose en lo profundo.
-
-3. LA PERSPECTIVA TEMPORAL (OSVALDO LOISI)
-Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo delimita un "coto cerrado" de experiencia humana. Estás transitando la estación de "${hexName}". La clave para salir de este tiempo o aprovecharlo no es luchar contra él, sino alinearte con su "Impronta". Si el tiempo es de ${upper.quality}, actuar con impaciencia solo generará desorden. Si el tiempo es de ${lower.quality}, la pasividad será un error.
-            `;
+            return `ANÁLISIS ESTRUCTURAL:\nEl Trigrama ${upper.name} (${upper.element}) se sitúa sobre ${lower.name} (${lower.element}).\n\nDINÁMICA:\nTu mundo interno (${lower.quality}) interactúa con un entorno de ${upper.quality}. La clave está en cómo ${lower.element} soporta o impulsa a ${upper.element}.\n\nTIEMPO (Loisi):\nEstás en la estación de "${hexName}". No es un evento aislado, sino un clima que requiere adaptación.`;
         };
 
         const generateProceduralInk = (upperBin, lowerBin) => {
-            const colors = ['#111', '#222', '#333'];
-            let svgContent = "";
-            if (upperBin === '111' || upperBin === '110') {
-                svgContent += `<circle cx='${200 + Math.random()*400}' cy='${50 + Math.random()*50}' r='${40 + Math.random()*40}' fill='${colors[0]}' opacity='0.05' />`;
-            }
-            if (upperBin === '001' || lowerBin === '001') {
-                svgContent += `<path d='M${100+Math.random()*100} 200 L${300+Math.random()*100} 50 L${500+Math.random()*100} 200 Z' fill='${colors[1]}' opacity='0.15' />`;
-            }
-            if (lowerBin === '010' || lowerBin === '011') {
-                svgContent += `<path d='M0 160 Q 400 ${120 + Math.random()*40} 800 160 V 200 H 0 Z' fill='${colors[2]}' opacity='0.1' />`;
-            }
-            if (upperBin === '101' || upperBin === '100') {
-                 svgContent += `<path d='M${300+Math.random()*200} 100 L${350+Math.random()*20} 20 L${400+Math.random()*20} 100 Z' fill='${colors[0]}' opacity='0.2' />`;
-            }
-            if (lowerBin === '000') {
-                svgContent += `<rect x='0' y='180' width='800' height='20' fill='${colors[1]}' opacity='0.2' />`;
-            }
-            if (svgContent === "") {
-                 svgContent += `<circle cx='400' cy='100' r='80' fill='${colors[0]}' opacity='0.05' />`;
-            }
-            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E${svgContent}%3E%3C/svg%3E`;
+            // Generador de respaldo SVG simple
+            const colors = ['#111', '#222'];
+            let svg = "";
+            if (upperBin === '111' || upperBin === '101') svg += `<circle cx='600' cy='50' r='40' fill='${colors[0]}' opacity='0.1'/>`;
+            if (lowerBin === '000' || lowerBin === '001') svg += `<path d='M0 200 L800 200 L400 100 Z' fill='${colors[1]}' opacity='0.1'/>`;
+            if (svg === "") svg = `<rect width='800' height='200' fill='#111' opacity='0.05'/>`;
+            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E${svg}%3E%3C/svg%3E`;
         };
 
-        // --- CITAS MUTANTES ---
-        const INTRO_QUOTES = [
-            { t: "El camino es fatal como la flecha,\npero en las grietas está Dios, que acecha.", a: "Jorge Luis Borges", s: "Para una versión del I King" },
-            { t: "El tiempo es un río que me arrebata, pero yo soy el río;\nes un tigre que me destroza, pero yo soy el tigre.", a: "Jorge Luis Borges", s: "Nueva refutación del tiempo" },
-            { t: "No hay un solo instante que no esté cargado de pasado.", a: "Jorge Luis Borges", s: "El jardín de senderos que se bifurcan" },
-            { t: "Somos nuestra memoria, somos ese quimérico museo de formas inconstantes.", a: "Jorge Luis Borges", s: "Elogio de la Sombra" }
-        ];
-
-        // --- BASE DE DATOS MAESTRA ---
         const getHexInfo = (linesInput) => {
             const bin = linesInput.map(l => (l===7||l===9)?'1':'0').join('');
             const id = KING_WEN_MAP[bin];
             const dbEntry = ORACLE_DB[id];
+            
             const lowerBin = bin.substring(0,3);
             const upperBin = bin.substring(3,6);
             const analysis = generateDeepAnalysis(upperBin, lowerBin, dbEntry.t);
             const inkImage = generateProceduralInk(upperBin, lowerBin); 
-            const jodorowsky = {
-                p: "Tu intuición completará el sentido.",
-                a: "Medita en silencio sobre el nombre de este hexagrama y realiza un acto simbólico de cambio."
-            };
-            return { ...dbEntry, id, analysis, inkImage, j: jodorowsky };
+
+            return { ...dbEntry, id, analysis, inkImage, j: {p: "Escucha el silencio.", a: "Medita sobre el signo."} };
         };
 
-        // --- COMPONENTE PRINCIPAL ---
+        // --- APP ---
         function IChingApp() {
             const [phase, setPhase] = useState('INTRO');
             const [method, setMethod] = useState(null);
-            const [lines, setLines] = useState([]); 
-            const [quote, setQuote] = useState(INTRO_QUOTES[0]);
-            const [readings, setReadings] = useState([]);
-            const [showBitacora, setShowBitacora] = useState(false);
-            const [genImage, setGenImage] = useState(INK_LANDSCAPES[0]); 
+            const [lines, setLines] = useState([]);
+            const [genImage, setGenImage] = useState(INK_LANDSCAPES[0]);
             const [isGenerating, setIsGenerating] = useState(false);
             const scrollRef = useRef(null);
 
-            useEffect(() => {
-                const stored = localStorage.getItem('iching_master_log');
-                if(stored) setReadings(JSON.parse(stored));
-                setQuote(INTRO_QUOTES[Math.floor(Math.random() * INTRO_QUOTES.length)]);
-                setGenImage(INK_LANDSCAPES[Math.floor(Math.random() * INK_LANDSCAPES.length)]); 
-            }, []);
-
-            // --- GENERAR IMAGEN PROCEDURAL (REEMPLAZA A LA API DE GOOGLE PARA ESTABILIDAD) ---
             const generateHexagramVisual = async (info) => {
                 setIsGenerating(true);
+                // Si hay API Key, intentamos generar
                 if (apiKey) {
-                    const prompt = `Ancient Chinese ink wash painting style, minimalist line drawing. Abstract representation of I Ching Hexagram "${info.t}". Concept: ${info.i}. Deep meaning: ${info.analysis.substring(0, 100)}... Black ink on old paper texture, mystical, serene, traditional art.`;
+                    const prompt = `Minimalist ink wash painting. Concept: "${info.t}" - ${info.i}. Traditional Chinese art style, black and white, abstract landscape.`;
                     try {
                         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
                         });
+                        
+                        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                        
                         const result = await response.json();
                         if (result.predictions?.[0]?.bytesBase64Encoded) {
                             setGenImage(`data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`);
@@ -344,23 +221,14 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                             return; 
                         }
                     } catch (e) {
-                        console.error("Error API Imagen:", e);
+                        console.error("Fallo generación, usando respaldo:", e);
                     }
                 }
+                // Fallback elegante si falla o no hay key
                 setTimeout(() => {
-                    setGenImage(info.inkImage);
+                    setGenImage(info.inkImage); 
                     setIsGenerating(false);
-                }, 1500);
-            };
-
-            const saveReading = (linesInput) => {
-                const info = getHexInfo(linesInput);
-                const newR = { id: Date.now(), date: new Date().toLocaleString(), lines: linesInput, hexId: info.id, title: info.t };
-                const last = readings[0];
-                if(last && last.lines.join('') === linesInput.join('') && Date.now() - last.id < 5000) return;
-                const updated = [newR, ...readings];
-                setReadings(updated);
-                localStorage.setItem('iching_master_log', JSON.stringify(updated));
+                }, 1000);
             };
 
             const castLine = () => {
@@ -373,271 +241,114 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
 
             useEffect(() => {
                 if (lines.length === 6 && phase === 'RITUAL') {
-                    setTimeout(() => setPhase('REVELATION'), 1000);
+                    setTimeout(() => setPhase('REVELATION'), 800);
                 }
                 if(phase === 'RITUAL' && scrollRef.current) scrollRef.current.scrollIntoView({behavior:'smooth'});
             }, [lines, phase]);
 
-            useEffect(() => {
-                if(phase === 'REVELATION' && lines.length === 6) {
-                    const info = getHexInfo(lines);
-                    saveReading(lines);
-                }
-            }, [phase]);
-
-            const reset = () => {
-                setLines([]);
-                setPhase('INTRO');
-                setMethod(null);
-                setGenImage(INK_LANDSCAPES[Math.floor(Math.random() * INK_LANDSCAPES.length)]);
-                setQuote(INTRO_QUOTES[Math.floor(Math.random() * INTRO_QUOTES.length)]);
-            };
-
-            const reviewReading = (r) => {
-                setLines(r.lines);
-                setPhase('REVELATION');
-                setShowBitacora(false);
-                const info = getHexInfo(r.lines);
-                setGenImage(info.inkImage); 
-            };
-
-            const clearLog = () => {
-                if(confirm("¿Quemar la bitácora completa?")) {
-                    setReadings([]);
-                    localStorage.removeItem('iching_master_log');
-                }
-            };
-
-            const handleGenerateClick = () => {
-                const currentData = getHexInfo(lines);
-                if (!currentData) return;
-                generateHexagramVisual(currentData);
-            };
-
             const currentData = (phase === 'REVELATION' && lines.length === 6) ? getHexInfo(lines) : null;
-            const movingLines = lines.map((v, i) => (v===6||v===9) ? {line: i+1, val: v} : null).filter(Boolean);
 
             const downloadPDF = () => {
-                if (!currentData) return;
                 const doc = new jsPDF();
+                doc.setFillColor(242, 232, 213); doc.rect(0,0,210,297,'F'); // Fondo
+                doc.setDrawColor(154, 27, 27); doc.setLineWidth(1); doc.rect(10,10,190,277); // Marco
                 
-                doc.setFillColor(242, 232, 213); 
-                doc.rect(0,0,210,297,'F');
-                doc.setDrawColor(154, 27, 27); 
-                doc.setLineWidth(1.5);
-                doc.rect(10, 10, 190, 277);
-                doc.setLineWidth(0.5);
-                doc.rect(12, 12, 186, 273);
-
-                doc.setTextColor(154, 27, 27); 
-                doc.setFontSize(26); 
-                doc.setFont("times", "bold");
-                doc.text(currentData.t.toUpperCase(), 105, 35, {align:'center'});
+                doc.setTextColor(154, 27, 27); doc.setFontSize(24); doc.setFont("times", "bold");
+                doc.text(currentData.t.toUpperCase(), 105, 30, {align:'center'});
                 
-                doc.setTextColor(20, 20, 20); 
-                doc.setFontSize(16); 
-                doc.setFont("times", "italic");
-                doc.text(`Hexagrama ${currentData.id}: ${currentData.n}`, 105, 45, {align:'center'});
-
-                doc.setDrawColor(154, 27, 27);
-                doc.line(70, 50, 140, 50);
-
-                doc.setFontSize(14);
-                doc.setFont("times", "bold");
-                doc.setTextColor(154, 27, 27);
-                doc.text("DICTAMEN", 20, 65);
+                doc.setTextColor(0); doc.setFontSize(12); doc.setFont("times", "normal");
+                const splitD = doc.splitTextToSize(currentData.d, 150);
+                doc.text(splitD, 30, 50);
                 
-                doc.setFontSize(12);
-                doc.setFont("times", "normal");
-                doc.setTextColor(0);
-                const splitD = doc.splitTextToSize(currentData.d, 170);
-                doc.text(splitD, 20, 72);
-                let y = 72 + (splitD.length * 6) + 10;
+                // Dibujar Hexagrama Visualmente
+                let y = 80;
+                [...lines].reverse().forEach(v => {
+                    const isYang = (v===7||v===9);
+                    doc.setFillColor(0);
+                    if(isYang) doc.rect(70, y, 70, 4, 'F');
+                    else { doc.rect(70, y, 30, 4, 'F'); doc.rect(110, y, 30, 4, 'F'); }
+                    y += 10;
+                });
 
-                doc.setFontSize(14);
-                doc.setFont("times", "bold");
-                doc.setTextColor(154, 27, 27);
-                doc.text("LA IMAGEN", 20, y);
-                y += 7;
+                doc.setFont("helvetica", "italic"); doc.setFontSize(10);
+                const splitA = doc.splitTextToSize(currentData.analysis, 150);
+                doc.text(splitA, 30, 160);
                 
-                doc.setFontSize(12);
-                doc.setFont("times", "italic");
-                doc.setTextColor(0);
-                const splitI = doc.splitTextToSize(currentData.i, 170);
-                doc.text(splitI, 20, y);
-                y += (splitI.length * 6) + 15;
-
-                doc.setDrawColor(200, 200, 200);
-                doc.line(20, y, 190, y);
-                y += 10;
-
-                doc.setFontSize(11);
-                doc.setFont("helvetica", "normal");
-                const splitA = doc.splitTextToSize(currentData.analysis, 170);
-                doc.text(splitA, 20, y);
-
-                doc.setFontSize(8);
-                doc.setTextColor(100);
-                doc.text("Consultado en el Espejo de las Mutaciones", 105, 280, {align:'center'});
-
                 doc.save(`iching_${currentData.id}.pdf`);
             };
 
-            const LineComp = ({ value, showNumber }) => {
+            const LineComp = ({ value }) => {
                 const isYang = value === 7 || value === 9;
-                const isMoving = value === 6 || value === 9;
                 return (
-                    <div className="w-full h-6 md:h-8 my-1 flex items-center justify-center relative">
-                        {showNumber && <span className={`absolute -left-8 text-xs font-cinzel ${isMoving?'text-cinnabar font-bold':'text-ink/30'}`}>{value}</span>}
-                        <div className="w-full h-full flex justify-between items-center px-1">
-                            {isYang ? <div className="w-full h-4 md:h-5 ink-brush rounded-sm shadow-sm"></div> : 
-                            <><div className="w-[42%] h-4 md:h-5 ink-brush rounded-sm shadow-sm"></div><div className="w-[42%] h-4 md:h-5 ink-brush rounded-sm shadow-sm"></div></>}
+                    <div className="w-full h-6 my-1 flex justify-center">
+                        <div className="w-full max-w-xs flex justify-between">
+                            {isYang ? <div className="w-full h-4 bg-ink rounded-sm"></div> : 
+                            <><div className="w-[45%] h-4 bg-ink rounded-sm"></div><div className="w-[45%] h-4 bg-ink rounded-sm"></div></>}
                         </div>
-                        {isMoving && <div className="absolute inset-0 flex items-center justify-center"><div className={`w-3 h-3 rounded-full ${value===9?'bg-paper border-2 border-cinnabar':'bg-cinnabar'} animate-pulse`}></div></div>}
                     </div>
                 );
             };
 
             return (
-                <div className="max-w-6xl mx-auto p-4 md:p-8 font-serif text-ink min-h-screen flex flex-col">
-                    <header className="flex justify-between items-center py-6 border-b-2 border-cinnabar/20 mb-8">
-                        <div className="w-10"></div>
-                        <div className="text-center">
-                            <h1 className="text-4xl md:text-5xl font-cinzel font-bold text-cinnabar tracking-widest drop-shadow-sm">I CHING</h1>
-                            <p className="text-xs md:text-sm font-cinzel uppercase tracking-[0.3em] opacity-60 mt-2">El Espejo de las Mutaciones</p>
-                        </div>
-                        <button onClick={() => setShowBitacora(true)} className="text-3xl hover:text-cinnabar transition-colors" title="Bitácora">📜</button>
-                    </header>
-
-                    {showBitacora && (
-                        <div className="fixed inset-0 z-50 flex justify-end">
-                            <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm" onClick={() => setShowBitacora(false)}></div>
-                            <div className="relative w-full max-w-md bg-paper h-full shadow-2xl p-8 overflow-y-auto animate-fadeIn border-l-4 border-cinnabar flex flex-col">
-                                <div className="flex justify-between mb-6 border-b border-cinnabar pb-4">
-                                    <h2 className="text-2xl font-cinzel text-cinnabar font-bold">Bitácora</h2>
-                                    <button onClick={() => setShowBitacora(false)} className="text-2xl hover:text-cinnabar">×</button>
-                                </div>
-                                {readings.length > 0 && <button onClick={() => { if(confirm("¿Borrar todo?")) { setReadings([]); localStorage.removeItem('iching_master_log'); } }} className="text-xs uppercase tracking-widest text-cinnabar border border-cinnabar px-4 py-2 mb-4 hover:bg-cinnabar hover:text-paper transition-colors self-end">Quemar Pergaminos</button>}
-                                <div className="space-y-4 flex-1">
-                                    {readings.map(r => (
-                                        <div key={r.id} onClick={() => reviewReading(r)} className="bg-white/40 p-4 border border-ink/10 cursor-pointer hover:border-cinnabar transition-colors group relative">
-                                            <div className="text-xs font-cinzel opacity-50 mb-1">{r.date}</div>
-                                            <div className="font-bold text-lg">#{r.hexId} {r.title}</div>
-                                            <div className="flex gap-1 mt-2">{r.lines.map((l,i)=><span key={i} className={`text-xs w-4 text-center ${l===6||l===9?'text-cinnabar font-bold border-b border-cinnabar':''}`}>{l}</span>)}</div>
-                                        </div>
-                                    ))}
-                                    {readings.length === 0 && <p className="text-center italic opacity-50 mt-10">La memoria está vacía.</p>}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                <div className="max-w-4xl mx-auto p-6 font-serif text-ink min-h-screen flex flex-col items-center">
+                    <h1 className="text-4xl font-cinzel text-cinnabar mb-8 tracking-widest">I CHING</h1>
 
                     {phase === 'INTRO' && (
-                        <div className="flex-1 flex flex-col items-center justify-center animate-fadeIn text-center px-4 relative">
-                            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{backgroundImage: `url(${INK_LANDSCAPES[0]})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'grayscale(100%)'}}></div>
-                            <div className="border-y-2 border-ink/10 py-12 px-8 mb-12 max-w-2xl bg-white/40 shadow-sm relative z-10 backdrop-blur-sm">
-                                <p className="text-2xl md:text-3xl italic leading-relaxed whitespace-pre-line text-ink/80">"{quote.t}"</p>
-                                <div className="mt-6 flex flex-col items-center"><span className="font-cinzel text-cinnabar font-bold uppercase tracking-widest text-sm">Jorge Luis Borges</span></div>
-                            </div>
-                            <div className="flex flex-col md:flex-row gap-8 relative z-10">
-                                <button onClick={() => { setMethod('yarrow'); setPhase('RITUAL'); }} className="group w-64 p-6 border-2 border-ink/20 hover:border-cinnabar bg-paper hover:bg-white transition-all duration-300 flex flex-col items-center">
-                                    <div className="h-12 w-12 rounded-full border border-ink/30 mb-4 flex items-center justify-center group-hover:border-cinnabar">🌿</div>
-                                    <span className="font-cinzel font-bold text-lg mb-2">Tallos de Milenrama</span>
-                                    <span className="text-xs font-serif italic opacity-60">Lento. Probabilidad Asimétrica.</span>
-                                </button>
-                                <button onClick={() => { setMethod('coin'); setPhase('RITUAL'); }} className="group w-64 p-6 border-2 border-ink/20 hover:border-cinnabar bg-paper hover:bg-white transition-all duration-300 flex flex-col items-center">
-                                    <div className="h-12 w-12 rounded-full border border-ink/30 mb-4 flex items-center justify-center group-hover:border-cinnabar">🪙</div>
-                                    <span className="font-cinzel font-bold text-lg mb-2">Tres Monedas</span>
-                                    <span className="text-xs font-serif italic opacity-60">Rápido. Probabilidad Simétrica.</span>
-                                </button>
+                        <div className="text-center animate-fadeIn">
+                            <p className="text-xl italic mb-12">"El camino es fatal como la flecha,<br/>pero en las grietas está Dios, que acecha."</p>
+                            <div className="flex gap-8 justify-center">
+                                <button onClick={() => { setMethod('yarrow'); setPhase('RITUAL'); }} className="border-2 border-cinnabar text-cinnabar px-8 py-4 hover:bg-cinnabar hover:text-paper transition-colors font-cinzel uppercase">Tallos (Sabio)</button>
+                                <button onClick={() => { setMethod('coin'); setPhase('RITUAL'); }} className="border-2 border-ink text-ink px-8 py-4 hover:bg-ink hover:text-paper transition-colors font-cinzel uppercase">Monedas (Guerrero)</button>
                             </div>
                         </div>
                     )}
 
                     {phase === 'RITUAL' && (
-                        <div className="flex-1 flex flex-col items-center py-12 animate-fadeIn">
-                            <div className="w-full max-w-xs mb-12 min-h-[400px] flex flex-col-reverse justify-start p-8 bg-white/30 border border-ink/5 shadow-inner rounded-sm">
-                                {lines.map((v, i) => <LineComp key={i} value={v} showNumber={true} />)}
-                                {lines.length === 0 && <p className="text-center italic opacity-40 mt-auto">El vacío fértil...</p>}
+                        <div className="w-full max-w-md animate-fadeIn flex flex-col items-center">
+                            <div className="flex flex-col-reverse gap-2 mb-8 w-full p-8 border border-ink/10 bg-white/40">
+                                {lines.map((v, i) => <LineComp key={i} value={v} />)}
+                                {lines.length === 0 && <p className="text-center opacity-50 italic">El vacío fértil...</p>}
                             </div>
-                            {lines.length < 6 ? (
-                                <button onClick={handleCast} ref={scrollRef} className="w-24 h-24 rounded-full border-2 border-ink hover:border-cinnabar bg-paper shadow-2xl flex items-center justify-center transition-transform active:scale-95 group relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-ink/5 group-hover:bg-cinnabar/10 transition-colors"></div>
-                                    <span className="text-3xl">{method === 'yarrow' ? '🌿' : '🪙'}</span>
+                            {lines.length < 6 && (
+                                <button onClick={handleCast} ref={scrollRef} className="w-24 h-24 rounded-full border-2 border-ink flex items-center justify-center hover:bg-ink hover:text-paper transition-colors text-2xl shadow-lg">
+                                    {method === 'yarrow' ? '🌿' : '🪙'}
                                 </button>
-                            ) : <p className="font-cinzel text-cinnabar text-xl animate-pulse tracking-widest">Interpretando...</p>}
-                            <p className="mt-6 font-mono text-xs uppercase tracking-widest opacity-50">Línea {lines.length + 1} de 6</p>
+                            )}
+                            {lines.length === 6 && <p className="text-cinnabar animate-pulse">Revelando...</p>}
                         </div>
                     )}
 
                     {phase === 'REVELATION' && currentData && (
-                        <div className="animate-fadeIn pb-20">
-                            <div className="w-full h-64 mb-12 overflow-hidden border-y-2 border-ink/10 relative bg-paper flex items-center justify-center group">
-                                {isGenerating ? (
-                                    <div className="text-center animate-pulse"><div className="text-3xl mb-2">🖌️</div><p className="font-cinzel text-ink/50 uppercase tracking-widest text-sm">Pincelando el destino...</p></div>
-                                ) : (
-                                    <>
-                                        <img src={genImage || INK_LANDSCAPES[0]} alt="Paisaje" className="w-full h-full object-cover opacity-80" style={{filter: 'sepia(30%) contrast(110%)'}} />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-[#F2E8D5] to-transparent pointer-events-none"></div>
-                                        <button onClick={handleGenerateClick} className="absolute bottom-4 right-4 bg-ink/80 hover:bg-cinnabar text-paper px-4 py-2 rounded-sm font-cinzel text-xs uppercase tracking-widest shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 border border-paper/20 z-10">
-                                            <span>👁️</span> Invocar Visión del Oráculo
-                                        </button>
-                                    </>
-                                )}
+                        <div className="w-full animate-fadeIn">
+                            <div className="w-full h-64 mb-8 bg-black/5 relative overflow-hidden flex items-center justify-center border-y-2 border-ink/10">
+                                {isGenerating ? <p className="animate-pulse font-cinzel">Invocando visión...</p> : 
+                                <>
+                                    <img src={genImage} className="w-full h-full object-cover opacity-80" />
+                                    <button onClick={() => generateHexagramVisual(currentData)} className="absolute bottom-4 right-4 bg-ink text-paper px-4 py-2 text-xs uppercase tracking-widest hover:bg-cinnabar transition-colors">Invocar Visión</button>
+                                </>}
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                                <div className="lg:col-span-4 relative">
-                                    <div className="hex-sticky bg-[#F0E6D2] p-8 border-2 border-ink/10 shadow-2xl rounded-sm">
-                                        <div className="text-center mb-6">
-                                            <h3 className="font-cinzel text-cinnabar text-sm uppercase tracking-[0.3em]">Hexagrama {currentData.id}</h3>
-                                            <h2 className="font-serif font-bold text-4xl mt-2 leading-none">{currentData.t}</h2>
-                                            <h4 className="font-serif italic text-xl opacity-60 mt-1">{currentData.n}</h4>
-                                        </div>
-                                        <div className="flex flex-col-reverse gap-2 py-4 border-y border-ink/5">
-                                            {lines.map((v, i) => <LineComp key={i} value={v} showNumber={true} />)}
-                                        </div>
-                                        <div className="mt-6 text-center">
-                                            <button onClick={downloadPDF} className="text-xs font-cinzel uppercase tracking-widest border border-cinnabar text-cinnabar px-4 py-2 hover:bg-cinnabar hover:text-paper transition-colors w-full">Descargar PDF</button>
-                                            <button onClick={() => { setLines([]); setPhase('INTRO'); setMethod(null); }} className="text-xs font-cinzel uppercase tracking-widest text-ink/40 hover:text-ink mt-4 block w-full">Nueva Lectura</button>
-                                        </div>
-                                    </div>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="md:col-span-1 bg-white/50 p-6 border-t-4 border-cinnabar">
+                                    <h2 className="text-3xl font-bold text-cinnabar mb-2">{currentData.t}</h2>
+                                    <h3 className="text-lg italic opacity-70 mb-6">Hexagrama {currentData.id}</h3>
+                                    <div className="flex flex-col-reverse gap-2">{lines.map((v,i)=><LineComp key={i} value={v} />)}</div>
+                                    <button onClick={downloadPDF} className="mt-8 w-full border border-ink text-xs uppercase py-2 hover:bg-ink hover:text-paper transition-colors">Descargar PDF</button>
+                                    <button onClick={()=>{setLines([]); setPhase('INTRO'); setMethod(null);}} className="mt-2 w-full text-xs uppercase py-2 opacity-50 hover:opacity-100">Nueva Lectura</button>
                                 </div>
-
-                                <div className="lg:col-span-8 space-y-12 pr-4">
-                                    <section>
-                                        <div className="flex items-center gap-4 mb-6"><div className="h-[1px] bg-cinnabar flex-1"></div><h3 className="font-cinzel text-cinnabar font-bold uppercase tracking-widest">El Dictamen</h3><div className="h-[1px] bg-cinnabar flex-1"></div></div>
-                                        <p className="text-2xl font-serif leading-loose text-justify first-letter:text-5xl first-letter:float-left first-letter:mr-3 first-letter:text-cinnabar">{currentData.d}</p>
-                                    </section>
-                                    <section className="bg-white/40 p-8 border-l-4 border-jade">
-                                        <h3 className="font-cinzel text-jade font-bold uppercase tracking-widest mb-4">La Imagen</h3>
-                                        <p className="text-xl font-serif italic text-ink/90">"{currentData.i}"</p>
-                                    </section>
-                                    <section className="bg-ink/5 p-8 rounded-sm">
-                                        <h3 className="font-cinzel text-ink/60 font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><span>⚡</span> Análisis Estructural y Tiempo</h3>
-                                        <div className="font-serif text-lg whitespace-pre-line leading-relaxed">{currentData.analysis}</div>
-                                    </section>
-                                    <section>
-                                        <h3 className="font-cinzel text-cinnabar font-bold uppercase tracking-widest mb-6 border-b border-cinnabar/20 pb-2">Las Líneas (Mutaciones)</h3>
-                                        {movingLines.length === 0 ? <div className="text-center p-8 border border-ink/10 italic opacity-60">No hay líneas mutantes. La situación es estable y el Dictamen es absoluto.</div> : 
-                                        <div className="space-y-6">{movingLines.map((m, i) => (
-                                            <div key={i} className="p-6 bg-white/60 shadow-sm border-l-4 border-cinnabar relative overflow-hidden">
-                                                <div className="absolute top-0 right-0 p-4 opacity-10 font-cinzel text-6xl text-cinnabar">{m.val}</div>
-                                                <h4 className="font-bold font-cinzel text-cinnabar mb-2 relative z-10">{m.val === 6 ? 'Seis' : 'Nueve'} en el puesto {m.line}</h4>
-                                                <p className="font-serif text-lg relative z-10">"Aquí sucede el cambio. La energía {m.val===6?'Yin se vuelve Yang':'Yang se vuelve Yin'}. Presta atención a este momento específico."</p>
-                                            </div>
-                                        ))}</div>}
-                                    </section>
-                                    <section className="grid md:grid-cols-2 gap-8">
-                                        <div className="bg-jade/10 p-6 border border-jade/20 rounded-sm">
-                                            <h4 className="font-cinzel text-jade font-bold text-xs uppercase tracking-widest mb-4">Poesofía</h4>
-                                            <p className="font-serif font-bold text-2xl">{currentData.j.p}</p>
-                                        </div>
-                                        <div className="bg-paper p-6 border border-ink/10 shadow-inner">
-                                            <h4 className="font-cinzel text-ink/50 font-bold text-xs uppercase tracking-widest mb-4">Acto Psicomágico</h4>
-                                            <p className="font-serif italic text-lg leading-relaxed">"{currentData.j.a}"</p>
-                                        </div>
-                                    </section>
+                                
+                                <div className="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h3 className="text-cinnabar font-bold uppercase tracking-widest border-b border-cinnabar/20 mb-2">El Dictamen</h3>
+                                        <p className="text-xl leading-relaxed">{currentData.d}</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-jade font-bold uppercase tracking-widest border-b border-jade/20 mb-2">La Imagen</h3>
+                                        <p className="text-lg italic opacity-80">"{currentData.i}"</p>
+                                    </div>
+                                    <div className="bg-ink/5 p-6 rounded text-sm whitespace-pre-line">
+                                        {currentData.analysis}
+                                    </div>
                                 </div>
                             </div>
                         </div>
