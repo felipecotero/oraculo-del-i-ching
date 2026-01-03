@@ -83,8 +83,7 @@
         // --- CLAVE API ---
         const apiKey = "AIzaSyBRwAd5v0Pgbh6QjWBLAuCy28Z8BG0Fwig"; 
 
-        // --- PAISAJES SVG INCORPORADOS (Nunca fallan) ---
-        // Definidos ANTES de que cualquier componente los intente usar
+        // --- PAISAJES SVG INCORPORADOS ---
         const INK_LANDSCAPES = [
             `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 200L200 100C250 80 300 150 400 50C500 -50 600 150 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M100 200L300 50C350 30 400 120 500 80C600 40 700 180 800 150V200H100Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
             `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpath d='M0 150C200 180 300 100 500 120C700 140 750 80 800 100V200H0Z' fill='%23111' opacity='0.1'/%3E%3Cpath d='M0 180C250 200 400 120 600 150C750 180 780 140 800 160V200H0Z' fill='%23111' opacity='0.2'/%3E%3C/svg%3E`,
@@ -220,13 +219,11 @@
             64: { n: "Wei Chi", t: "Antes de la Consumación", d: "Si el pequeño zorro, al casi completar el cruce, se moja la cola, nada es propicio.", i: "El fuego está sobre el agua: la imagen del estado antes de la consumación." }
         };
 
-        // --- MOTOR DE ANÁLISIS ESTRUCTURAL PROFUNDO ---
+        // --- MOTOR DE ANÁLISIS ESTRUCTURAL PROFUNDO Y PROCEDURAL INK ---
         const generateDeepAnalysis = (upperBin, lowerBin, hexName) => {
             const upper = TRIGRAMS[upperBin];
             const lower = TRIGRAMS[lowerBin];
-            
-            // Cálculo Nuclear
-            const fullBin = lowerBin + upperBin; 
+            const fullBin = lowerBin + upperBin;
             const nLowerBin = fullBin[1] + fullBin[2] + fullBin[3];
             const nUpperBin = fullBin[2] + fullBin[3] + fullBin[4];
             const nFullBin = nLowerBin + nUpperBin;
@@ -262,6 +259,30 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
             `;
         };
 
+        const generateProceduralInk = (upperBin, lowerBin) => {
+            const colors = ['#111', '#222', '#333'];
+            let svgContent = "";
+            if (upperBin === '111' || upperBin === '110') {
+                svgContent += `<circle cx='${200 + Math.random()*400}' cy='${50 + Math.random()*50}' r='${40 + Math.random()*40}' fill='${colors[0]}' opacity='0.05' />`;
+            }
+            if (upperBin === '001' || lowerBin === '001') {
+                svgContent += `<path d='M${100+Math.random()*100} 200 L${300+Math.random()*100} 50 L${500+Math.random()*100} 200 Z' fill='${colors[1]}' opacity='0.15' />`;
+            }
+            if (lowerBin === '010' || lowerBin === '011') {
+                svgContent += `<path d='M0 160 Q 400 ${120 + Math.random()*40} 800 160 V 200 H 0 Z' fill='${colors[2]}' opacity='0.1' />`;
+            }
+            if (upperBin === '101' || upperBin === '100') {
+                 svgContent += `<path d='M${300+Math.random()*200} 100 L${350+Math.random()*20} 20 L${400+Math.random()*20} 100 Z' fill='${colors[0]}' opacity='0.2' />`;
+            }
+            if (lowerBin === '000') {
+                svgContent += `<rect x='0' y='180' width='800' height='20' fill='${colors[1]}' opacity='0.2' />`;
+            }
+            if (svgContent === "") {
+                 svgContent += `<circle cx='400' cy='100' r='80' fill='${colors[0]}' opacity='0.05' />`;
+            }
+            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E${svgContent}%3E%3C/svg%3E`;
+        };
+
         // --- CITAS MUTANTES ---
         const INTRO_QUOTES = [
             { t: "El camino es fatal como la flecha,\npero en las grietas está Dios, que acecha.", a: "Jorge Luis Borges", s: "Para una versión del I King" },
@@ -275,19 +296,14 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
             const bin = linesInput.map(l => (l===7||l===9)?'1':'0').join('');
             const id = KING_WEN_MAP[bin];
             const dbEntry = ORACLE_DB[id];
-            
-            // Análisis Dinámico
             const lowerBin = bin.substring(0,3);
             const upperBin = bin.substring(3,6);
             const analysis = generateDeepAnalysis(upperBin, lowerBin, dbEntry.t);
-            const inkImage = generateProceduralInk(upperBin, lowerBin); // SVG por defecto
-
-            // Jodorowsky generico por ahora
+            const inkImage = generateProceduralInk(upperBin, lowerBin); 
             const jodorowsky = {
                 p: "Tu intuición completará el sentido.",
                 a: "Medita en silencio sobre el nombre de este hexagrama y realiza un acto simbólico de cambio."
             };
-
             return { ...dbEntry, id, analysis, inkImage, j: jodorowsky };
         };
 
@@ -313,8 +329,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
             // --- GENERAR IMAGEN PROCEDURAL (REEMPLAZA A LA API DE GOOGLE PARA ESTABILIDAD) ---
             const generateHexagramVisual = async (info) => {
                 setIsGenerating(true);
-                
-                // Intento de generación con Nano Banana si la clave está presente
                 if (apiKey) {
                     const prompt = `Ancient Chinese ink wash painting style, minimalist line drawing. Abstract representation of I Ching Hexagram "${info.t}". Concept: ${info.i}. Deep meaning: ${info.analysis.substring(0, 100)}... Black ink on old paper texture, mystical, serene, traditional art.`;
                     try {
@@ -327,14 +341,12 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                         if (result.predictions?.[0]?.bytesBase64Encoded) {
                             setGenImage(`data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`);
                             setIsGenerating(false);
-                            return; // Éxito, salimos
+                            return; 
                         }
                     } catch (e) {
                         console.error("Error API Imagen:", e);
                     }
                 }
-
-                // Fallback a SVG si no hay API o falla
                 setTimeout(() => {
                     setGenImage(info.inkImage);
                     setIsGenerating(false);
@@ -344,16 +356,13 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
             const saveReading = (linesInput) => {
                 const info = getHexInfo(linesInput);
                 const newR = { id: Date.now(), date: new Date().toLocaleString(), lines: linesInput, hexId: info.id, title: info.t };
-                
                 const last = readings[0];
                 if(last && last.lines.join('') === linesInput.join('') && Date.now() - last.id < 5000) return;
-
                 const updated = [newR, ...readings];
                 setReadings(updated);
                 localStorage.setItem('iching_master_log', JSON.stringify(updated));
             };
 
-            // PROBABILIDADES AJUSTADAS POR MÉTODO
             const castLine = () => {
                 const r = Math.random() * 16;
                 if (method === 'coin') return r < 2 ? 6 : r < 8 ? 7 : r < 14 ? 8 : 9;
@@ -373,8 +382,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 if(phase === 'REVELATION' && lines.length === 6) {
                     const info = getHexInfo(lines);
                     saveReading(lines);
-                    // Generar visual al revelar
-                    // generateHexagramVisual(info); 
                 }
             }, [phase]);
 
@@ -391,7 +398,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 setPhase('REVELATION');
                 setShowBitacora(false);
                 const info = getHexInfo(r.lines);
-                // Al revisar, volvemos a un SVG por defecto para dar la opción de "regenerar"
                 setGenImage(info.inkImage); 
             };
 
@@ -402,6 +408,12 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 }
             };
 
+            const handleGenerateClick = () => {
+                const currentData = getHexInfo(lines);
+                if (!currentData) return;
+                generateHexagramVisual(currentData);
+            };
+
             const currentData = (phase === 'REVELATION' && lines.length === 6) ? getHexInfo(lines) : null;
             const movingLines = lines.map((v, i) => (v===6||v===9) ? {line: i+1, val: v} : null).filter(Boolean);
 
@@ -409,34 +421,27 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 if (!currentData) return;
                 const doc = new jsPDF();
                 
-                // Fondo Crema
                 doc.setFillColor(242, 232, 213); 
                 doc.rect(0,0,210,297,'F');
-                
-                // Marco Rojo
-                doc.setDrawColor(154, 27, 27); // Cinnabar
+                doc.setDrawColor(154, 27, 27); 
                 doc.setLineWidth(1.5);
                 doc.rect(10, 10, 190, 277);
                 doc.setLineWidth(0.5);
                 doc.rect(12, 12, 186, 273);
 
-                // Título
                 doc.setTextColor(154, 27, 27); 
                 doc.setFontSize(26); 
                 doc.setFont("times", "bold");
                 doc.text(currentData.t.toUpperCase(), 105, 35, {align:'center'});
                 
-                // Subtítulo
-                doc.setTextColor(20, 20, 20); // Ink
+                doc.setTextColor(20, 20, 20); 
                 doc.setFontSize(16); 
                 doc.setFont("times", "italic");
                 doc.text(`Hexagrama ${currentData.id}: ${currentData.n}`, 105, 45, {align:'center'});
 
-                // Línea divisoria decorativa
                 doc.setDrawColor(154, 27, 27);
                 doc.line(70, 50, 140, 50);
 
-                // Dictamen
                 doc.setFontSize(14);
                 doc.setFont("times", "bold");
                 doc.setTextColor(154, 27, 27);
@@ -449,7 +454,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 doc.text(splitD, 20, 72);
                 let y = 72 + (splitD.length * 6) + 10;
 
-                // Imagen
                 doc.setFontSize(14);
                 doc.setFont("times", "bold");
                 doc.setTextColor(154, 27, 27);
@@ -463,7 +467,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 doc.text(splitI, 20, y);
                 y += (splitI.length * 6) + 15;
 
-                // Análisis Estructural
                 doc.setDrawColor(200, 200, 200);
                 doc.line(20, y, 190, y);
                 y += 10;
@@ -473,7 +476,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                 const splitA = doc.splitTextToSize(currentData.analysis, 170);
                 doc.text(splitA, 20, y);
 
-                // Pie de página
                 doc.setFontSize(8);
                 doc.setTextColor(100);
                 doc.text("Consultado en el Espejo de las Mutaciones", 105, 280, {align:'center'});
@@ -532,7 +534,6 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
 
                     {phase === 'INTRO' && (
                         <div className="flex-1 flex flex-col items-center justify-center animate-fadeIn text-center px-4 relative">
-                            {/* IMAGEN DE FONDO/CABECERA (Procedural Inicial) */}
                             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{backgroundImage: `url(${INK_LANDSCAPES[0]})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'grayscale(100%)'}}></div>
                             <div className="border-y-2 border-ink/10 py-12 px-8 mb-12 max-w-2xl bg-white/40 shadow-sm relative z-10 backdrop-blur-sm">
                                 <p className="text-2xl md:text-3xl italic leading-relaxed whitespace-pre-line text-ink/80">"{quote.t}"</p>
@@ -578,7 +579,7 @@ Este no es un evento estático, es un "Tiempo". Como enseña Loisi, el oráculo 
                                     <>
                                         <img src={genImage || INK_LANDSCAPES[0]} alt="Paisaje" className="w-full h-full object-cover opacity-80" style={{filter: 'sepia(30%) contrast(110%)'}} />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#F2E8D5] to-transparent pointer-events-none"></div>
-                                        <button onClick={() => generateHexagramVisual(currentData)} className="absolute bottom-4 right-4 bg-ink/80 hover:bg-cinnabar text-paper px-4 py-2 rounded-sm font-cinzel text-xs uppercase tracking-widest shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 border border-paper/20 z-10">
+                                        <button onClick={handleGenerateClick} className="absolute bottom-4 right-4 bg-ink/80 hover:bg-cinnabar text-paper px-4 py-2 rounded-sm font-cinzel text-xs uppercase tracking-widest shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 border border-paper/20 z-10">
                                             <span>👁️</span> Invocar Visión del Oráculo
                                         </button>
                                     </>
